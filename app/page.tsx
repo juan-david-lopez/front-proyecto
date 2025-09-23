@@ -1,103 +1,152 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, lazy, Suspense } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Navigation } from "@/components/navigation"
+
+// Lazy loading del modal
+const PlanModal = lazy(() => import("@/components/plan-modal").then(module => ({ default: module.PlanModal })))
+
+export default function HomePage() {
+  const [selectedPlan, setSelectedPlan] = useState<"basico" | "premium" | "elite" | null>(null)
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-black text-white">
+      {/* ✅ Navigation extraído en componente */}
+      <Navigation />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Hero Section */}
+      <section
+        className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center bg-gradient-to-b from-black to-gray-900"
+        role="banner"
+      >
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 text-balance">
+          FitZone - Tu camino hacia una vida más saludable
+        </h1>
+        <p className="text-xl md:text-2xl mb-8 text-gray-300">Transforma tu cuerpo, mente y espíritu</p>
+        <Button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-black">
+          Únete Ahora
+        </Button>
+      </section>
+
+      {/* Memberships Section */}
+      <section className="py-16 px-6 bg-gray-900" aria-labelledby="memberships-heading">
+        <h2 id="memberships-heading" className="text-3xl md:text-4xl font-bold text-center mb-12">
+          Nuestras Membresías
+        </h2>
+
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Plan Básico */}
+          <Card className="bg-gray-800 border-gray-700 text-white h-full">
+            <CardContent className="p-8 text-center h-full flex flex-col">
+              <h3 className="text-2xl font-bold text-gray-300 mb-4">Básico</h3>
+              <div className="text-3xl font-bold mb-6 text-green-400">
+                $50,000<span className="text-lg font-normal text-gray-400">/mes</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-gray-300 flex-grow" role="list">
+                <li>Acceso al área de pesas</li>
+                <li>2 horas diarias de entrenamiento</li>
+                <li>Máquinas cardiovasculares</li>
+                <li>Vestuarios y duchas</li>
+                <li>Horario: 6AM - 8PM</li>
+                <li>Acceso a una sola sucursal</li>
+              </ul>
+              <Button
+                onClick={() => setSelectedPlan("basico")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
+                aria-describedby="plan-basico-info"
+              >
+                Seleccionar Plan
+              </Button>
+              <div id="plan-basico-info" className="sr-only">
+                Plan Básico por $50,000 pesos mensuales
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Plan Premium */}
+          <Card className="bg-gray-800 border-2 border-red-500 text-white relative">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-bold">MAS POPULAR</span>
+            </div>
+            <CardContent className="p-8 pt-12 text-center">
+              <h3 className="text-2xl font-bold text-red-500 mb-4">Premium</h3>
+              <div className="text-3xl font-bold mb-6 text-green-400">
+                $70,000<span className="text-lg font-normal text-gray-400">/mes</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-gray-300" role="list">
+                <li>Todo lo del plan básico</li>
+                <li>Acceso 24/7 con tiempo ilimitado</li>
+                <li>Clases grupales ilimitadas</li>
+                <li>Entrenador personal (2 sesiones/mes)</li>
+                <li>Área de funcional</li>
+                <li>Evaluación nutricional</li>
+                <li>Gamificación y retos mensuales</li>
+              </ul>
+              <Button
+                onClick={() => setSelectedPlan("premium")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-describedby="plan-premium-info"
+              >
+                Seleccionar Plan
+              </Button>
+              <div id="plan-premium-info" className="sr-only">
+                Plan Premium por $70,000 pesos mensuales
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Plan Elite */}
+          <Card className="bg-gray-800 border-gray-700 text-white">
+            <CardContent className="p-8 text-center">
+              <h3 className="text-2xl font-bold text-gray-300 mb-4">Elite</h3>
+              <div className="text-3xl font-bold mb-6 text-green-400">
+                $90,000<span className="text-lg font-normal text-gray-400">/mes</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-gray-300" role="list">
+                <li>Todo lo del plan Premium</li>
+                <li>Acceso a cualquier sucursal</li>
+                <li>Entrenador personal (4 sesiones/mes)</li>
+                <li>Sauna y jacuzzi</li>
+                <li>Plan nutricional personalizado</li>
+                <li>Invitaciones para amigos (2/mes)</li>
+                <li>20% de descuento en reservas de espacios</li>
+              </ul>
+              <Button
+                onClick={() => setSelectedPlan("elite")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                aria-describedby="plan-elite-info"
+              >
+                Seleccionar Plan
+              </Button>
+              <div id="plan-elite-info" className="sr-only">
+                Plan Elite por $90,000 pesos mensuales
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-16 px-6 text-center bg-black">
+        <h2 className="text-3xl md:text-4xl font-bold mb-8">Empieza a mejorar tu salud hoy</h2>
+        <Button className="bg-red-600 hover:bg-red-700 text-white px-12 py-4 text-xl font-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-black">
+          ¡EMPIEZA YA!
+        </Button>
+      </section>
+
+      {selectedPlan && (
+        <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+        </div>}>
+          <PlanModal 
+            isOpen={!!selectedPlan} 
+            onClose={() => setSelectedPlan(null)} 
+            plan={selectedPlan} 
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </Suspense>
+      )}
     </div>
-  );
+  )
 }
