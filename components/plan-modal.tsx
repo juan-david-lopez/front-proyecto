@@ -14,40 +14,36 @@ interface PlanModalProps {
 const planData = {
   basico: {
     title: "Plan Básico",
-    price: "$50,000/mes",
+    price: "$50.000/mes",
     benefits: [
       "Acceso al área de pesas",
-      "2 horas diarias de entrenamiento",
+      "2 horas por día de entrenamiento",
       "Máquinas cardiovasculares",
       "Vestuarios y duchas",
-      "Horario: 6AM - 8PM",
-      "Acceso a una sola sucursal",
+      "Solo puede estar en una sucursal",
     ],
   },
   premium: {
     title: "Plan Premium",
-    price: "$70,000/mes",
+    price: "$70.000/mes",
     benefits: [
       "Todo lo del plan básico",
-      "Acceso 24/7 con tiempo ilimitado",
-      "Clases grupales ilimitadas",
+      "Acceso 24/7",
       "Entrenador personal (2 sesiones/mes)",
-      "Área de funcional",
       "Evaluación nutricional",
-      "Gamificación y retos mensuales",
+      "Invitaciones para amigos (1/mes)",
     ],
   },
   elite: {
     title: "Plan Elite",
-    price: "$90,000/mes",
+    price: "$90.000/mes",
     benefits: [
       "Todo lo del plan Premium",
-      "Acceso a cualquier sucursal",
+      "Puede ingresar a cualquier sucursal",
       "Entrenador personal (4 sesiones/mes)",
-      "Sauna y jacuzzi",
       "Plan nutricional personalizado",
-      "Invitaciones para amigos (2/mes)",
-      "20% de descuento en reservas de espacios",
+      "Invitaciones para amigos (3/mes)",
+      "Nutricionista incluido",
     ],
   },
 }
@@ -74,6 +70,11 @@ export function PlanModal({ isOpen, onClose, plan }: PlanModalProps) {
       return () => document.removeEventListener("keydown", handleKeyDown)
     }
   }, [isOpen, onClose])
+
+  const handleContinue = () => {
+    window.location.href = `/checkout?plan=${plan}`
+    onClose()
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -113,17 +114,13 @@ export function PlanModal({ isOpen, onClose, plan }: PlanModalProps) {
             <Button
               onClick={onClose}
               className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-              aria-label="Cancelar y cerrar modal"
+              aria-label="Volver sin seleccionar plan"
             >
-              Cancelar
+              Volver
             </Button>
             <Button
               ref={continueButtonRef}
-              onClick={() => {
-                // Aquí puedes agregar la lógica para proceder con la selección del plan
-                console.log(`Plan ${plan} seleccionado`)
-                onClose()
-              }}
+              onClick={handleContinue}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
               aria-label={`Continuar con ${currentPlan.title} por ${currentPlan.price}`}
             >
