@@ -24,11 +24,15 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard requireAuth={true}>
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-black border-b border-gray-800">
+        <header className="flex items-center justify-between px-6 py-4 bg-background border-b border-border">
           <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+            <div
+              className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center"
+              role="img"
+              aria-label="Avatar del usuario"
+            >
               <span className="text-white font-bold text-lg">U</span>
             </div>
             <h1 className="text-xl font-semibold">¡Hola, Usuario!</h1>
@@ -38,6 +42,7 @@ export default function DashboardPage() {
             onClick={handleLogout}
             variant="outline"
             className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent"
+            aria-label="Cerrar sesión de la aplicación"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Cerrar Sesión
@@ -46,17 +51,25 @@ export default function DashboardPage() {
 
         <div className="px-6 py-8 space-y-8">
           {/* Membership Status */}
-          <section>
-            <h2 className="text-2xl font-bold text-red-500 mb-4">Estado de Membresía</h2>
-            <Card className="bg-gray-900 border-gray-700">
+          <section aria-labelledby="membership-heading">
+            <h2 id="membership-heading" className="text-2xl font-bold text-red-500 mb-4">
+              Estado de Membresía
+            </h2>
+            <Card className="bg-card border-border">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <div
+                    className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                    role="img"
+                    aria-label="Sin membresía activa"
+                  >
                     <X className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-white mb-2">Sin Membresía Activa</h3>
-                    <p className="text-gray-400 mb-4">Adquiere una membresía para acceder a todos los beneficios</p>
+                    <h3 className="text-xl font-semibold text-card-foreground mb-2">Sin Membresía Activa</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Adquiere una membresía para acceder a todos los beneficios
+                    </p>
                     <Link href="/membresias">
                       <Button className="bg-red-600 hover:bg-red-700 text-white">Adquirir Membresía</Button>
                     </Link>
@@ -67,108 +80,157 @@ export default function DashboardPage() {
           </section>
 
           {/* Quick Actions */}
-          <section>
-            <h2 className="text-2xl font-bold text-red-500 mb-6">Acciones Rápidas</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gray-900 border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
+          <section aria-labelledby="actions-heading">
+            <h2 id="actions-heading" className="text-2xl font-bold text-red-500 mb-6">
+              Acciones Rápidas
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
+              <Card className="bg-card border-border hover:bg-accent transition-colors cursor-pointer" role="gridcell">
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <div
+                    className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4"
+                    role="img"
+                    aria-label="Icono de perfil"
+                  >
                     <User className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Mi Perfil</h3>
-                  <p className="text-gray-400 text-sm">Configurar información personal</p>
+                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Mi Perfil</h3>
+                  <p className="text-muted-foreground text-sm">Configurar información personal</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-red-600 border-2 hover:bg-gray-800 transition-colors cursor-pointer">
+              <Card
+                className="bg-card border-red-600 border-2 hover:bg-accent transition-colors cursor-pointer"
+                role="gridcell"
+              >
                 <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <div
+                    className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mx-auto mb-4"
+                    role="img"
+                    aria-label="Icono de estadísticas"
+                  >
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Estadísticas</h3>
-                  <p className="text-gray-400 text-sm">Ver progreso y métricas</p>
+                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Estadísticas</h3>
+                  <p className="text-muted-foreground text-sm">Ver progreso y métricas</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <CreditCard className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Membresías</h3>
-                  <p className="text-gray-400 text-sm">Gestionar planes y pagos</p>
-                </CardContent>
-              </Card>
+              <Link href="/membresias" className="block">
+                <Card
+                  className="bg-card border-border hover:bg-accent transition-colors cursor-pointer h-full"
+                  role="gridcell"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div
+                      className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mx-auto mb-4"
+                      role="img"
+                      aria-label="Icono de membresías"
+                    >
+                      <CreditCard className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Membresías</h3>
+                    <p className="text-muted-foreground text-sm">Gestionar planes y pagos</p>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card className="bg-gray-900 border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <Settings className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">Configuración</h3>
-                  <p className="text-gray-400 text-sm">Ajustes de la aplicación</p>
-                </CardContent>
-              </Card>
+              <Link href="/configuracion" className="block">
+                <Card
+                  className="bg-card border-border hover:bg-accent transition-colors cursor-pointer h-full"
+                  role="gridcell"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div
+                      className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center mx-auto mb-4"
+                      role="img"
+                      aria-label="Icono de configuración"
+                    >
+                      <Settings className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Configuración</h3>
+                    <p className="text-muted-foreground text-sm">Ajustes de la aplicación</p>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </section>
 
           {/* Today's Statistics */}
-          <section>
-            <h2 className="text-2xl font-bold text-red-500 mb-2">Estadísticas de Hoy</h2>
-            <p className="text-gray-400 mb-6 capitalize">{currentDate}</p>
+          <section aria-labelledby="stats-heading">
+            <h2 id="stats-heading" className="text-2xl font-bold text-red-500 mb-2">
+              Estadísticas de Hoy
+            </h2>
+            <p className="text-muted-foreground mb-6 capitalize">{currentDate}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gray-900 border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
+              <Card className="bg-card border-border" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <div
+                      className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center"
+                      role="img"
+                      aria-label="Icono de entrenamientos"
+                    >
                       <Calendar className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">1</div>
-                      <div className="text-gray-400 text-sm">Entrenamientos</div>
+                      <div className="text-2xl font-bold text-card-foreground">1</div>
+                      <div className="text-muted-foreground text-sm">Entrenamientos</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="bg-card border-border" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                    <div
+                      className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center"
+                      role="img"
+                      aria-label="Icono de tiempo"
+                    >
                       <Clock className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">45min</div>
-                      <div className="text-gray-400 text-sm">Tiempo Entrenado</div>
+                      <div className="text-2xl font-bold text-card-foreground">45min</div>
+                      <div className="text-muted-foreground text-sm">Tiempo Entrenado</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="bg-card border-border" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                    <div
+                      className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center"
+                      role="img"
+                      aria-label="Icono de calorías"
+                    >
                       <Flame className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">320</div>
-                      <div className="text-gray-400 text-sm">Calorías Quemadas</div>
+                      <div className="text-2xl font-bold text-card-foreground">320</div>
+                      <div className="text-muted-foreground text-sm">Calorías Quemadas</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="bg-card border-border" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                    <div
+                      className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center"
+                      role="img"
+                      aria-label="Icono de ubicación"
+                    >
                       <MapPin className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">1</div>
-                      <div className="text-gray-400 text-sm">Visitas al Gimnasio</div>
+                      <div className="text-2xl font-bold text-card-foreground">1</div>
+                      <div className="text-muted-foreground text-sm">Visitas al Gimnasio</div>
                     </div>
                   </div>
                 </CardContent>
