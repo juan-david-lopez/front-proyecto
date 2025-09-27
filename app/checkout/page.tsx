@@ -148,7 +148,7 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Payment Form */}
           <div className="space-y-8">
-            <div>
+            <div className="text-center">
               <h1 className="text-3xl font-bold text-red-500 mb-2">FINALIZAR COMPRA</h1>
               <p className="text-gray-400">Completa tu información para procesar el pago</p>
             </div>

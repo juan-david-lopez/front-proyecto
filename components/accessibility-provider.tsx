@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 
 type Theme = "light" | "dark"
-type FontSize = "text-xs" | "text-sm" | "text-base" | "text-lg" | "text-xl" | "text-2xl"
+export type FontSize = "small" | "medium" | "large" | "extra-large"
 
 interface AccessibilityContextType {
   theme: Theme
@@ -18,19 +18,17 @@ interface AccessibilityContextType {
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
 
-const fontSizes: FontSize[] = ["text-xs", "text-sm", "text-base", "text-lg", "text-xl", "text-2xl"]
+const fontSizes: FontSize[] = ["small", "medium", "large", "extra-large"]
 const fontSizeToClass = {
-  "text-xs": "font-small",
-  "text-sm": "font-small",
-  "text-base": "font-medium",
-  "text-lg": "font-medium",
-  "text-xl": "font-large",
-  "text-2xl": "font-extra-large",
+  small: "font-small",
+  medium: "font-medium",
+  large: "font-large",
+  "extra-large": "font-extra-large",
 }
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark")
-  const [fontSize, setFontSizeState] = useState<FontSize>("text-base")
+  const [fontSize, setFontSizeState] = useState<FontSize>("medium")
 
   useEffect(() => {
     console.log("[v0] AccessibilityProvider initializing...")
@@ -52,7 +50,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     document.documentElement.classList.remove("light", "dark")
     document.documentElement.classList.add(savedTheme || "dark")
 
-    const initialFontClass = fontSizeToClass[(savedFontSize || "text-base") as keyof typeof fontSizeToClass]
+    const initialFontClass = fontSizeToClass[(savedFontSize || "medium") as keyof typeof fontSizeToClass]
     document.documentElement.classList.remove("font-small", "font-medium", "font-large", "font-extra-large")
     document.documentElement.classList.add(initialFontClass)
   }, [])
@@ -100,7 +98,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }
 
   const resetFontSize = () => {
-    setFontSizeState("text-base")
+    setFontSizeState("medium")
   }
 
   return (

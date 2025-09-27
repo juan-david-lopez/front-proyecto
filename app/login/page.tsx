@@ -61,16 +61,17 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log("[v0] Login attempt:", formData)
 
+      // Store login data temporarily for OTP verification
       localStorage.setItem(
-        "user",
+        "pendingLogin",
         JSON.stringify({
           email: formData.email,
-          isAuthenticated: true,
-          loginTime: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
         }),
       )
 
-      router.push("/dashboard")
+      // Redirect to OTP verification with login context
+      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=login`)
     } catch (error) {
       setErrors({ general: "Error al iniciar sesión. Intenta nuevamente." })
     } finally {

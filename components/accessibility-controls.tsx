@@ -1,16 +1,16 @@
 "use client"
-import { useAccessibility } from "./accessibility-provider"
+import { useAccessibility, type FontSize } from "./accessibility-provider"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun, Type, Minus, Plus } from "lucide-react"
 
 export function AccessibilityControls() {
   const { theme, fontSize, toggleTheme, setFontSize } = useAccessibility()
 
-  const fontSizes: Array<{ value: typeof fontSize, label: string, icon: React.ReactNode }> = [
-    { value: "sm" as typeof fontSize, label: "Pequeño", icon: <Minus className="h-3 w-3" /> },
-    { value: "base" as typeof fontSize, label: "Mediano", icon: <Type className="h-4 w-4" /> },
-    { value: "lg" as typeof fontSize, label: "Grande", icon: <Type className="h-5 w-5" /> },
-    { value: "xl" as typeof fontSize, label: "Extra Grande", icon: <Plus className="h-4 w-4" /> },
+  const fontSizes: Array<{ value: FontSize; label: string; icon: React.ReactNode }> = [
+    { value: "small", label: "Pequeño", icon: <Minus className="h-3 w-3" /> },
+    { value: "medium", label: "Mediano", icon: <Type className="h-4 w-4" /> },
+    { value: "large", label: "Grande", icon: <Type className="h-5 w-5" /> },
+    { value: "extra-large", label: "Extra Grande", icon: <Plus className="h-4 w-4" /> },
   ]
 
   return (

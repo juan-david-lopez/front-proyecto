@@ -16,6 +16,7 @@ export default function VerifyOTPPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
+  const verificationType = searchParams.get("type") || "register"
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [isLoading, setIsLoading] = useState(false)
@@ -97,16 +98,31 @@ export default function VerifyOTPPage() {
 
       // Simulate validation (in real app, this would be an API call)
       if (otpCode === "123456") {
-        setSuccess("¡Cuenta verificada exitosamente!")
+        if (verificationType === "login") {
+          setSuccess("¡Inicio de sesión verificado exitosamente!")
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: email,
-            isAuthenticated: true,
-            registrationTime: new Date().toISOString(),
-          }),
-        )
+          // Clear pending login data and set authenticated user
+          localStorage.removeItem("pendingLogin")
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              email: email,
+              isAuthenticated: true,
+              loginTime: new Date().toISOString(),
+            }),
+          )
+        } else {
+          setSuccess("¡Cuenta verificada exitosamente!")
+
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              email: email,
+              isAuthenticated: true,
+              registrationTime: new Date().toISOString(),
+            }),
+          )
+        }
 
         setTimeout(() => {
           router.push("/dashboard")
@@ -155,7 +171,11 @@ export default function VerifyOTPPage() {
       <main className="w-full max-w-md">
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-8">
-            <Link href="/register" className="inline-block mb-8" aria-label="Volver al registro">
+            <Link
+              href={verificationType === "login" ? "/login" : "/register"}
+              className="inline-block mb-8"
+              aria-label={verificationType === "login" ? "Volver al inicio de sesión" : "Volver al registro"}
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -170,8 +190,14 @@ export default function VerifyOTPPage() {
               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="w-8 h-8 text-white" aria-hidden="true" />
               </div>
-              <h1 className="text-3xl font-bold text-red-500 mb-2">Verificar Código</h1>
-              <p className="text-gray-300 text-sm">Hemos enviado un código de verificación de 6 dígitos a</p>
+              <h1 className="text-3xl font-bold text-red-500 mb-2">
+                {verificationType === "login" ? "Verificar Inicio de Sesión" : "Verificar Código"}
+              </h1>
+              <p className="text-gray-300 text-sm">
+                {verificationType === "login"
+                  ? "Hemos enviado un código de verificación de 6 dígitos para confirmar tu inicio de sesión a"
+                  : "Hemos enviado un código de verificación de 6 dígitos a"}
+              </p>
               <p className="text-white font-medium">{email}</p>
             </div>
 
