@@ -33,8 +33,8 @@ export default function MembresíasPage() {
 
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Plan Básico */}
-          <Card className="bg-gray-800 border-gray-700 text-white relative">
-            <CardContent className="p-8">
+          <Card className="bg-gray-800 border-gray-700 text-white relative flex flex-col">
+            <CardContent className="p-8 flex flex-col flex-1">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-300 mb-2">Básico</h2>
                 <p className="text-gray-400 mb-4">Perfecto para comenzar tu journey fitness</p>
@@ -43,7 +43,7 @@ export default function MembresíasPage() {
                 </div>
               </div>
 
-              <div className="mb-8">
+              <div className="mb-8 flex-1">
                 <h3 className="text-lg font-semibold mb-4">Incluye:</h3>
                 <ul className="space-y-3" role="list">
                   <li className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export default function MembresíasPage() {
 
               <Button
                 onClick={() => setSelectedPlan("basico")}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                 aria-describedby="plan-basico-description"
               >
                 Seleccionar Plan
@@ -87,11 +87,11 @@ export default function MembresíasPage() {
           </Card>
 
           {/* Plan Premium */}
-          <Card className="bg-gray-800 border-2 border-red-500 text-white relative">
+          <Card className="bg-gray-800 border-2 border-red-500 text-white relative flex flex-col">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <span className="bg-red-500 text-white px-4 py-1 rounded-full text-sm font-bold">MAS POPULAR</span>
             </div>
-            <CardContent className="p-8 pt-12">
+            <CardContent className="p-8 pt-12 flex flex-col flex-1">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-red-500 mb-2">Premium</h2>
                 <p className="text-gray-400 mb-4">La opción más completa para resultados óptimos</p>
@@ -100,7 +100,7 @@ export default function MembresíasPage() {
                 </div>
               </div>
 
-              <div className="mb-8">
+              <div className="mb-8 flex-1">
                 <h3 className="text-lg font-semibold mb-4">Incluye:</h3>
                 <ul className="space-y-3" role="list">
                   <li className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function MembresíasPage() {
 
               <Button
                 onClick={() => setSelectedPlan("premium")}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                 aria-describedby="plan-premium-description"
               >
                 Seleccionar Plan
@@ -148,8 +148,8 @@ export default function MembresíasPage() {
           </Card>
 
           {/* Plan VIP */}
-          <Card className="bg-gray-800 border-gray-700 text-white relative">
-            <CardContent className="p-8">
+          <Card className="bg-gray-800 border-gray-700 text-white relative flex flex-col">
+            <CardContent className="p-8 flex flex-col flex-1">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-300 mb-2">VIP</h2>
                 <p className="text-gray-400 mb-4">El mejor valor para miembros comprometidos</p>
@@ -158,7 +158,7 @@ export default function MembresíasPage() {
                 </div>
               </div>
 
-              <div className="mb-8">
+              <div className="mb-8 flex-1">
                 <h3 className="text-lg font-semibold mb-4">Incluye:</h3>
                 <ul className="space-y-3" role="list">
                   <li className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function MembresíasPage() {
 
               <Button
                 onClick={() => setSelectedPlan("elite")}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                 aria-describedby="plan-vip-description"
               >
                 Seleccionar Plan

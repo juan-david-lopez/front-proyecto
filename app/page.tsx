@@ -83,13 +83,13 @@ export default function HomePage() {
 
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Plan Básico */}
-            <Card className="bg-gray-800 border-gray-700 text-white">
-              <CardContent className="p-8 text-center">
+            <Card className="bg-gray-800 border-gray-700 text-white flex flex-col">
+              <CardContent className="p-8 text-center flex flex-col flex-1">
                 <h3 className="text-2xl font-bold text-red-500 mb-4">Plan Básico</h3>
                 <div className="text-3xl font-bold mb-6">
                   $50.000<span className="text-lg font-normal">/mes</span>
                 </div>
-                <ul className="space-y-3 mb-8 text-gray-300" role="list">
+                <ul className="space-y-3 mb-8 text-gray-300 flex-1" role="list">
                   <li>Acceso al área de pesas</li>
                   <li>2 horas por día de entrenamiento</li>
                   <li>Máquinas cardiovasculares</li>
@@ -98,7 +98,7 @@ export default function HomePage() {
                 </ul>
                 <Button
                   onClick={() => setSelectedPlan("basico")}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                   aria-describedby="plan-basico-info"
                 >
                   Seleccionar Plan
@@ -110,13 +110,13 @@ export default function HomePage() {
             </Card>
 
             {/* Plan Premium */}
-            <Card className="bg-gray-800 border-gray-700 text-white">
-              <CardContent className="p-8 text-center">
+            <Card className="bg-gray-800 border-gray-700 text-white flex flex-col">
+              <CardContent className="p-8 text-center flex flex-col flex-1">
                 <h3 className="text-2xl font-bold text-red-500 mb-4">Plan Premium</h3>
                 <div className="text-3xl font-bold mb-6">
                   $70.000<span className="text-lg font-normal">/mes</span>
                 </div>
-                <ul className="space-y-3 mb-8 text-gray-300" role="list">
+                <ul className="space-y-3 mb-8 text-gray-300 flex-1" role="list">
                   <li>Todo lo del plan básico</li>
                   <li>Acceso 24/7</li>
                   <li>Entrenador personal (2 sesiones/mes)</li>
@@ -125,7 +125,7 @@ export default function HomePage() {
                 </ul>
                 <Button
                   onClick={() => setSelectedPlan("premium")}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                   aria-describedby="plan-premium-info"
                 >
                   Seleccionar Plan
@@ -137,13 +137,13 @@ export default function HomePage() {
             </Card>
 
             {/* Plan Elite */}
-            <Card className="bg-gray-800 border-gray-700 text-white">
-              <CardContent className="p-8 text-center">
+            <Card className="bg-gray-800 border-gray-700 text-white flex flex-col">
+              <CardContent className="p-8 text-center flex flex-col flex-1">
                 <h3 className="text-2xl font-bold text-red-500 mb-4">Plan Elite</h3>
                 <div className="text-3xl font-bold mb-6">
                   $90.000<span className="text-lg font-normal">/mes</span>
                 </div>
-                <ul className="space-y-3 mb-8 text-gray-300" role="list">
+                <ul className="space-y-3 mb-8 text-gray-300 flex-1" role="list">
                   <li>Todo lo del plan Premium</li>
                   <li>Puede ingresar a cualquier sucursal</li>
                   <li>Entrenador personal (4 sesiones/mes)</li>
@@ -153,7 +153,7 @@ export default function HomePage() {
                 </ul>
                 <Button
                   onClick={() => setSelectedPlan("elite")}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 mt-auto"
                   aria-describedby="plan-elite-info"
                 >
                   Seleccionar Plan
