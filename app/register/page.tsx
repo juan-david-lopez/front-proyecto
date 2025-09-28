@@ -15,6 +15,25 @@ import { FitZoneLogo } from "@/components/fitzone-logo"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
+import { userService } from "@/services/userService"
+import { DocumentType, UserRole } from "@/types/user"
+
+// Definir el tipo para el formulario
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  documentType: DocumentType | "";
+  documentNumber: string;
+  password: string;
+  confirmPassword: string;
+  phoneNumber: string;
+  birthDate: string;
+  medicalConditions: string;
+  mainLocationId: string;
+  role: UserRole;
+  terms: boolean;
+}
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -22,23 +41,46 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const [formData, setFormData] = useState({
-    name: "",
-    lastname: "",
+  const [formData, setFormData] = useState<FormData>({
+    firstName: "",
+    lastName: "",
     email: "",
-    doctype: "",
-    docnumber: "",
+    documentType: "",
+    documentNumber: "",
     password: "",
-    confirmpassword: "",
-    phone: "",
-    birthdate: "",
-    medical: "",
-    branch: "",
-    role: "miembro",
+    confirmPassword: "",
+    phoneNumber: "",
+    birthDate: "",
+    medicalConditions: "",
+    mainLocationId: "",
+    role: UserRole.CLIENT,
     terms: false,
   })
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+
+  // Mapeo de tipos de documento del frontend al backend
+  const documentTypeMap: { [key: string]: DocumentType } = {
+    "cedula": DocumentType.CC,
+    "tarjeta": DocumentType.CC,
+    "pasaporte": DocumentType.PASSPORT,
+    "extranjeria": DocumentType.CE
+  }
+
+  // Mapeo de roles del frontend al backend
+  const roleMap: { [key: string]: UserRole } = {
+    "miembro": UserRole.CLIENT,
+    "entrenador": UserRole.INSTRUCTOR,
+    "admin": UserRole.ADMIN
+  }
+
+  // Mapeo de sedes a IDs (debes obtener estos IDs de tu backend)
+  const locationMap: { [key: string]: number } = {
+    "norte": 1,
+    "sur": 2,
+    "centro": 3,
+    "oriente": 4
+  }
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -51,11 +93,15 @@ export default function RegisterPage() {
   }
 
   const validatePassword = (password: string) => {
-    return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password)
+    return password.length >= 8 && 
+           /[A-Z]/.test(password) && 
+           /[a-z]/.test(password) && 
+           /\d/.test(password) &&
+           /[@$!%*?&]/.test(password)
   }
 
   const validateDocumentNumber = (docnumber: string) => {
-    return /^\d{6,12}$/.test(docnumber)
+    return /^[0-9]{6,20}$/.test(docnumber)
   }
 
   const validateAge = (birthdate: string) => {
@@ -68,16 +114,16 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = "El nombre es requerido"
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "El nombre debe tener al menos 2 caracteres"
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "El nombre es requerido"
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = "El nombre debe tener al menos 2 caracteres"
     }
 
-    if (!formData.lastname.trim()) {
-      newErrors.lastname = "El apellido es requerido"
-    } else if (formData.lastname.trim().length < 2) {
-      newErrors.lastname = "El apellido debe tener al menos 2 caracteres"
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "El apellido es requerido"
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = "El apellido debe tener al menos 2 caracteres"
     }
 
     if (!formData.email.trim()) {
@@ -86,34 +132,38 @@ export default function RegisterPage() {
       newErrors.email = "Ingresa un correo electrónico válido"
     }
 
-    if (!formData.doctype) {
-      newErrors.doctype = "Selecciona un tipo de documento"
+    if (!formData.documentType) {
+      newErrors.documentType = "Selecciona un tipo de documento"
     }
 
-    if (!formData.docnumber.trim()) {
-      newErrors.docnumber = "El número de documento es requerido"
-    } else if (!validateDocumentNumber(formData.docnumber)) {
-      newErrors.docnumber = "El número de documento debe tener entre 6 y 12 dígitos"
+    if (!formData.documentNumber.trim()) {
+      newErrors.documentNumber = "El número de documento es requerido"
+    } else if (!validateDocumentNumber(formData.documentNumber)) {
+      newErrors.documentNumber = "El número de documento debe tener entre 6 y 20 dígitos"
     }
 
     if (!formData.password) {
       newErrors.password = "La contraseña es requerida"
     } else if (!validatePassword(formData.password)) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número"
+      newErrors.password = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)"
     }
 
-    if (!formData.confirmpassword) {
-      newErrors.confirmpassword = "Confirma tu contraseña"
-    } else if (formData.password !== formData.confirmpassword) {
-      newErrors.confirmpassword = "Las contraseñas no coinciden"
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Confirma tu contraseña"
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Las contraseñas no coinciden"
     }
 
-    if (formData.phone && !validatePhone(formData.phone)) {
-      newErrors.phone = "Ingresa un número de teléfono válido"
+    if (!formData.phoneNumber) {
+      newErrors.phoneNumber = "El número de teléfono es requerido"
+    } else if (!validatePhone(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Ingresa un número de teléfono válido"
     }
 
-    if (formData.birthdate && !validateAge(formData.birthdate)) {
-      newErrors.birthdate = "Debes tener entre 16 y 100 años"
+    if (!formData.birthDate) {
+      newErrors.birthDate = "La fecha de nacimiento es requerida"
+    } else if (!validateAge(formData.birthDate)) {
+      newErrors.birthDate = "Debes tener entre 16 y 100 años"
     }
 
     if (!formData.terms) {
@@ -122,6 +172,37 @@ export default function RegisterPage() {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
+  }
+
+  // Función tipada correctamente para manejar cambios en los inputs
+  const handleInputChange = (field: keyof FormData, value: string | boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    
+    // Limpiar errores cuando el usuario empiece a escribir
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }))
+    }
+    if (errors.general) {
+      setErrors((prev) => ({ ...prev, general: "" }))
+    }
+    if (errors.success) {
+      setErrors((prev) => ({ ...prev, success: "" }))
+    }
+  }
+
+  // Función específica para manejar cambios en inputs de texto
+  const handleTextChange = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    handleInputChange(field, e.target.value)
+  }
+
+  // Función específica para manejar cambios en selects
+  const handleSelectChange = (field: keyof FormData) => (value: string) => {
+    handleInputChange(field, value)
+  }
+
+  // Función específica para manejar cambios en checkbox
+  const handleCheckboxChange = (field: keyof FormData) => (checked: boolean) => {
+    handleInputChange(field, checked)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,24 +215,57 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      console.log("[v0] Registration data:", formData)
+      // Preparar datos para el backend
+      const userData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        documentType: documentTypeMap[formData.documentType] || DocumentType.CC,
+        documentNumber: formData.documentNumber.trim(),
+        password: formData.password,
+        phoneNumber: formData.phoneNumber.trim(),
+        birthDate: formData.birthDate,
+        emergencyContactPhone: formData.phoneNumber.trim(),
+        medicalConditions: formData.medicalConditions.trim() || "",
+        mainLocationId: formData.mainLocationId ? locationMap[formData.mainLocationId] : undefined,
+        role: roleMap[formData.role] || UserRole.CLIENT
+      }
 
-      // Redirect to OTP verification
-      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`)
-    } catch (error) {
-      setErrors({ general: "Error al registrar. Intenta nuevamente." })
+      console.log("Enviando datos de registro:", userData)
+
+      // Llamar al servicio de registro público
+      const response = await userService.publicRegister(userData)
+
+      console.log("Usuario registrado exitosamente:", response)
+
+      // Mostrar mensaje de éxito y redirigir
+      setErrors({ 
+        success: "¡Registro exitoso! Serás redirigido al login." 
+      })
+
+      // Redirigir al login después de 2 segundos
+      setTimeout(() => {
+        router.push("/login")
+      }, 2000)
+
+    } catch (error: any) {
+      console.error("Error en el registro:", error)
+      
+      let errorMessage = "Error al registrar. Intenta nuevamente."
+      
+      if (error.message) {
+        if (error.message.includes("409") || error.message.includes("duplicate")) {
+          errorMessage = "El correo electrónico o documento ya está registrado."
+        } else if (error.message.includes("400")) {
+          errorMessage = "Datos inválidos. Verifica la información ingresada."
+        } else {
+          errorMessage = error.message
+        }
+      }
+
+      setErrors({ general: errorMessage })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
     }
   }
 
@@ -169,7 +283,7 @@ export default function RegisterPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
                   VOLVER
@@ -184,64 +298,54 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-labelledby="register-form">
-                <div id="register-form" className="sr-only">
-                  Formulario de registro de nueva cuenta
+              {errors.success && (
+                <div className="bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded mb-6" role="alert">
+                  {errors.success}
                 </div>
+              )}
 
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white text-sm">
+                  <Label htmlFor="firstName" className="text-white text-sm">
                     Nombre
                   </Label>
                   <Input
-                    id="name"
+                    id="firstName"
                     type="text"
                     placeholder="Tu nombre"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
-                      errors.name ? "border-red-500" : ""
+                    value={formData.firstName}
+                    onChange={handleTextChange("firstName")}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                      errors.firstName ? "border-red-500" : ""
                     }`}
                     required
                     autoComplete="given-name"
-                    aria-describedby="name-help name-error"
                   />
-                  <div id="name-help" className="sr-only">
-                    Ingresa tu nombre completo
-                  </div>
-                  {errors.name && (
-                    <p id="name-error" className="text-red-400 text-sm" role="alert">
-                      {errors.name}
-                    </p>
+                  {errors.firstName && (
+                    <p className="text-red-400 text-sm">{errors.firstName}</p>
                   )}
                 </div>
 
                 {/* Last Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="lastname" className="text-white text-sm">
+                  <Label htmlFor="lastName" className="text-white text-sm">
                     Apellido
                   </Label>
                   <Input
-                    id="lastname"
+                    id="lastName"
                     type="text"
                     placeholder="Tu apellido"
-                    value={formData.lastname}
-                    onChange={(e) => handleInputChange("lastname", e.target.value)}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
-                      errors.lastname ? "border-red-500" : ""
+                    value={formData.lastName}
+                    onChange={handleTextChange("lastName")}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                      errors.lastName ? "border-red-500" : ""
                     }`}
                     required
                     autoComplete="family-name"
-                    aria-describedby="lastname-help lastname-error"
                   />
-                  <div id="lastname-help" className="sr-only">
-                    Ingresa tu apellido
-                  </div>
-                  {errors.lastname && (
-                    <p id="lastname-error" className="text-red-400 text-sm" role="alert">
-                      {errors.lastname}
-                    </p>
+                  {errors.lastName && (
+                    <p className="text-red-400 text-sm">{errors.lastName}</p>
                   )}
                 </div>
 
@@ -255,91 +359,65 @@ export default function RegisterPage() {
                     type="email"
                     placeholder="tu@email.com"
                     value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
+                    onChange={handleTextChange("email")}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
                       errors.email ? "border-red-500" : ""
                     }`}
                     required
                     autoComplete="email"
-                    aria-describedby="email-help email-error"
                   />
-                  <div id="email-help" className="sr-only">
-                    Ingresa una dirección de correo electrónico válida
-                  </div>
                   {errors.email && (
-                    <p id="email-error" className="text-red-400 text-sm" role="alert">
-                      {errors.email}
-                    </p>
+                    <p className="text-red-400 text-sm">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Document Type Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="doctype" className="text-white text-sm">
+                  <Label htmlFor="documentType" className="text-white text-sm">
                     Tipo de Documento
                   </Label>
                   <Select
-                    value={formData.doctype}
-                    onValueChange={(value) => handleInputChange("doctype", value)}
+                    value={formData.documentType}
+                    onValueChange={handleSelectChange("documentType")}
                     required
                   >
                     <SelectTrigger
-                      className={`bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-500 ${
-                        errors.doctype ? "border-red-500" : ""
+                      className={`bg-gray-700 border-gray-600 text-white focus:border-red-500 ${
+                        errors.documentType ? "border-red-500" : ""
                       }`}
-                      aria-describedby="doctype-help doctype-error"
                     >
                       <SelectValue placeholder="Selecciona un tipo" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="cedula" className="text-white hover:bg-gray-600">
-                        Cédula de Ciudadanía
-                      </SelectItem>
-                      <SelectItem value="tarjeta" className="text-white hover:bg-gray-600">
-                        Tarjeta de Identidad
-                      </SelectItem>
-                      <SelectItem value="pasaporte" className="text-white hover:bg-gray-600">
-                        Pasaporte
-                      </SelectItem>
-                      <SelectItem value="extranjeria" className="text-white hover:bg-gray-600">
-                        Cédula de Extranjería
-                      </SelectItem>
+                      <SelectItem value="cedula">Cédula de Ciudadanía</SelectItem>
+                      <SelectItem value="tarjeta">Tarjeta de Identidad</SelectItem>
+                      <SelectItem value="pasaporte">Pasaporte</SelectItem>
+                      <SelectItem value="extranjeria">Cédula de Extranjería</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div id="doctype-help" className="sr-only">
-                    Selecciona el tipo de documento de identificación
-                  </div>
-                  {errors.doctype && (
-                    <p id="doctype-error" className="text-red-400 text-sm" role="alert">
-                      {errors.doctype}
-                    </p>
+                  {errors.documentType && (
+                    <p className="text-red-400 text-sm">{errors.documentType}</p>
                   )}
                 </div>
 
                 {/* Document Number Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="docnumber" className="text-white text-sm">
+                  <Label htmlFor="documentNumber" className="text-white text-sm">
                     Número de Documento
                   </Label>
                   <Input
-                    id="docnumber"
+                    id="documentNumber"
                     type="text"
                     placeholder="Número de documento"
-                    value={formData.docnumber}
-                    onChange={(e) => handleInputChange("docnumber", e.target.value.replace(/\D/g, ""))}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
-                      errors.docnumber ? "border-red-500" : ""
+                    value={formData.documentNumber}
+                    onChange={(e) => handleInputChange("documentNumber", e.target.value.replace(/\D/g, ""))}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                      errors.documentNumber ? "border-red-500" : ""
                     }`}
                     required
-                    aria-describedby="docnumber-help docnumber-error"
                   />
-                  <div id="docnumber-help" className="sr-only">
-                    Ingresa el número de tu documento de identificación
-                  </div>
-                  {errors.docnumber && (
-                    <p id="docnumber-error" className="text-red-400 text-sm" role="alert">
-                      {errors.docnumber}
-                    </p>
+                  {errors.documentNumber && (
+                    <p className="text-red-400 text-sm">{errors.documentNumber}</p>
                   )}
                 </div>
 
@@ -354,247 +432,176 @@ export default function RegisterPage() {
                       type={showPassword ? "text" : "password"}
                       placeholder="********"
                       value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 pr-10 ${
+                      onChange={handleTextChange("password")}
+                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-10 ${
                         errors.password ? "border-red-500" : ""
                       }`}
                       required
                       autoComplete="new-password"
-                      aria-describedby="password-help password-error"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  <div id="password-help" className="sr-only">
-                    Crea una contraseña segura para tu cuenta
-                  </div>
                   {errors.password && (
-                    <p id="password-error" className="text-red-400 text-sm" role="alert">
-                      {errors.password}
-                    </p>
+                    <p className="text-red-400 text-sm">{errors.password}</p>
                   )}
                 </div>
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmpassword" className="text-white text-sm">
+                  <Label htmlFor="confirmPassword" className="text-white text-sm">
                     Confirmar Contraseña
                   </Label>
                   <div className="relative">
                     <Input
-                      id="confirmpassword"
+                      id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="********"
-                      value={formData.confirmpassword}
-                      onChange={(e) => handleInputChange("confirmpassword", e.target.value)}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 pr-10 ${
-                        errors.confirmpassword ? "border-red-500" : ""
+                      value={formData.confirmPassword}
+                      onChange={handleTextChange("confirmPassword")}
+                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-10 ${
+                        errors.confirmPassword ? "border-red-500" : ""
                       }`}
                       required
                       autoComplete="new-password"
-                      aria-describedby="confirmpassword-help confirmpassword-error"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                      aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  <div id="confirmpassword-help" className="sr-only">
-                    Confirma tu contraseña ingresándola nuevamente
-                  </div>
-                  {errors.confirmpassword && (
-                    <p id="confirmpassword-error" className="text-red-400 text-sm" role="alert">
-                      {errors.confirmpassword}
-                    </p>
+                  {errors.confirmPassword && (
+                    <p className="text-red-400 text-sm">{errors.confirmPassword}</p>
                   )}
                 </div>
 
                 {/* Phone Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-white text-sm">
+                  <Label htmlFor="phoneNumber" className="text-white text-sm">
                     Teléfono
                   </Label>
                   <Input
-                    id="phone"
+                    id="phoneNumber"
                     type="tel"
                     placeholder="Número de teléfono"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
-                      errors.phone ? "border-red-500" : ""
+                    value={formData.phoneNumber}
+                    onChange={handleTextChange("phoneNumber")}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                      errors.phoneNumber ? "border-red-500" : ""
                     }`}
+                    required
                     autoComplete="tel"
-                    aria-describedby="phone-help phone-error"
                   />
-                  <div id="phone-help" className="sr-only">
-                    Ingresa tu número de teléfono de contacto
-                  </div>
-                  {errors.phone && (
-                    <p id="phone-error" className="text-red-400 text-sm" role="alert">
-                      {errors.phone}
-                    </p>
+                  {errors.phoneNumber && (
+                    <p className="text-red-400 text-sm">{errors.phoneNumber}</p>
                   )}
                 </div>
 
                 {/* Birth Date Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="birthdate" className="text-white text-sm">
+                  <Label htmlFor="birthDate" className="text-white text-sm">
                     Fecha de Nacimiento
                   </Label>
                   <div className="relative">
                     <Input
-                      id="birthdate"
+                      id="birthDate"
                       type="date"
-                      placeholder="dd/mm/aaaa"
-                      value={formData.birthdate}
-                      onChange={(e) => handleInputChange("birthdate", e.target.value)}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
-                        errors.birthdate ? "border-red-500" : ""
+                      value={formData.birthDate}
+                      onChange={handleTextChange("birthDate")}
+                      className={`bg-gray-700 border-gray-600 text-white focus:border-red-500 ${
+                        errors.birthDate ? "border-red-500" : ""
                       }`}
+                      required
                       autoComplete="bday"
-                      aria-describedby="birthdate-help birthdate-error"
                     />
-                    <Calendar
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-                      aria-hidden="true"
-                    />
+                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
-                  <div id="birthdate-help" className="sr-only">
-                    Selecciona tu fecha de nacimiento
-                  </div>
-                  {errors.birthdate && (
-                    <p id="birthdate-error" className="text-red-400 text-sm" role="alert">
-                      {errors.birthdate}
-                    </p>
+                  {errors.birthDate && (
+                    <p className="text-red-400 text-sm">{errors.birthDate}</p>
                   )}
                 </div>
 
                 {/* Medical Conditions Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="medical" className="text-white text-sm">
-                    Condiciones Médicas
+                  <Label htmlFor="medicalConditions" className="text-white text-sm">
+                    Condiciones Médicas (Opcional)
                   </Label>
                   <Textarea
-                    id="medical"
-                    placeholder="Escribe tus condiciones médicas"
-                    value={formData.medical}
-                    onChange={(e) => handleInputChange("medical", e.target.value)}
-                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 min-h-[80px]"
-                    aria-describedby="medical-help"
+                    id="medicalConditions"
+                    placeholder="Escribe tus condiciones médicas relevantes"
+                    value={formData.medicalConditions}
+                    onChange={handleTextChange("medicalConditions")}
+                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 min-h-[80px]"
                   />
-                  <div id="medical-help" className="sr-only">
-                    Describe cualquier condición médica relevante para tu entrenamiento
-                  </div>
                 </div>
 
                 {/* Main Branch Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="branch" className="text-white text-sm">
-                    Sede Principal
+                  <Label htmlFor="mainLocationId" className="text-white text-sm">
+                    Sede Principal (Opcional)
                   </Label>
-                  <Select value={formData.branch} onValueChange={(value) => handleInputChange("branch", value)}>
-                    <SelectTrigger
-                      className="bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-500"
-                      aria-describedby="branch-help"
-                    >
-                      <SelectValue placeholder="Sede Principal" />
+                  <Select value={formData.mainLocationId} onValueChange={handleSelectChange("mainLocationId")}>
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white focus:border-red-500">
+                      <SelectValue placeholder="Selecciona una sede" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="norte" className="text-white hover:bg-gray-600">
-                        Sede Norte
-                      </SelectItem>
-                      <SelectItem value="sur" className="text-white hover:bg-gray-600">
-                        Sede Sur
-                      </SelectItem>
-                      <SelectItem value="centro" className="text-white hover:bg-gray-600">
-                        Sede Centro
-                      </SelectItem>
-                      <SelectItem value="oriente" className="text-white hover:bg-gray-600">
-                        Sede Oriente
-                      </SelectItem>
+                      <SelectItem value="norte">Sede Norte</SelectItem>
+                      <SelectItem value="sur">Sede Sur</SelectItem>
+                      <SelectItem value="centro">Sede Centro</SelectItem>
+                      <SelectItem value="oriente">Sede Oriente</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div id="branch-help" className="sr-only">
-                    Selecciona la sede principal donde entrenarás
-                  </div>
                 </div>
 
                 {/* Role Field */}
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-white text-sm">
-                    Rol
+                    Tipo de Usuario
                   </Label>
-                  <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)}>
-                    <SelectTrigger
-                      className="bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-500"
-                      aria-describedby="role-help"
-                    >
-                      <SelectValue placeholder="Miembro" />
+                  <Select value={formData.role} onValueChange={handleSelectChange("role")}>
+                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white focus:border-red-500">
+                      <SelectValue placeholder="Selecciona tu rol" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-700 border-gray-600">
-                      <SelectItem value="miembro" className="text-white hover:bg-gray-600">
-                        Miembro
-                      </SelectItem>
-                      <SelectItem value="entrenador" className="text-white hover:bg-gray-600">
-                        Entrenador
-                      </SelectItem>
-                      <SelectItem value="admin" className="text-white hover:bg-gray-600">
-                        Administrador
-                      </SelectItem>
+                      <SelectItem value="miembro">Miembro</SelectItem>
+                      <SelectItem value="entrenador">Entrenador</SelectItem>
+                      <SelectItem value="admin">Administrador</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div id="role-help" className="sr-only">
-                    Selecciona tu rol en el gimnasio
-                  </div>
                 </div>
 
+                {/* Terms and Conditions */}
                 <div className="flex items-start space-x-2 mt-6">
                   <Checkbox
                     id="terms"
                     checked={formData.terms}
-                    onCheckedChange={(checked) => handleInputChange("terms", checked as boolean)}
-                    className={`border-gray-600 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                    onCheckedChange={handleCheckboxChange("terms")}
+                    className={`border-gray-600 data-[state=checked]:bg-red-600 ${
                       errors.terms ? "border-red-500" : ""
                     }`}
                     required
-                    aria-describedby="terms-help terms-error"
                   />
                   <div className="space-y-1">
                     <Label htmlFor="terms" className="text-sm text-white leading-relaxed">
                       Acepto los{" "}
-                      <Link
-                        href="/terms"
-                        className="text-red-500 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
-                        aria-label="Leer términos y condiciones"
-                      >
+                      <Link href="/terms" className="text-red-500 hover:text-red-400">
                         términos y condiciones
                       </Link>{" "}
                       y la{" "}
-                      <Link
-                        href="/privacy"
-                        className="text-red-500 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
-                        aria-label="Leer política de privacidad"
-                      >
+                      <Link href="/privacy" className="text-red-500 hover:text-red-400">
                         política de privacidad
                       </Link>
                     </Label>
-                    <div id="terms-help" className="sr-only">
-                      Debes aceptar los términos y condiciones para continuar
-                    </div>
                     {errors.terms && (
-                      <p id="terms-error" className="text-red-400 text-sm" role="alert">
-                        {errors.terms}
-                      </p>
+                      <p className="text-red-400 text-sm">{errors.terms}</p>
                     )}
                   </div>
                 </div>
@@ -602,26 +609,18 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-semibold py-3 mt-8 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-                  aria-describedby="register-button-help"
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white font-semibold py-3 mt-8"
                 >
                   {isLoading ? "Registrando..." : "Registrarse"}
                 </Button>
-                <div id="register-button-help" className="sr-only">
-                  Hacer clic para crear tu nueva cuenta
-                </div>
               </form>
 
-              <nav className="text-center mt-6" aria-label="Enlaces de inicio de sesión">
+              <div className="text-center mt-6">
                 <span className="text-gray-300">¿Ya tienes una cuenta? </span>
-                <Link
-                  href="/login"
-                  className="text-red-500 hover:text-red-400 font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded px-1"
-                  aria-label="Ir a la página de inicio de sesión"
-                >
+                <Link href="/login" className="text-red-500 hover:text-red-400 font-medium">
                   Inicia sesión aquí
                 </Link>
-              </nav>
+              </div>
             </CardContent>
           </Card>
         </main>

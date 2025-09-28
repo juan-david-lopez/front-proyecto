@@ -12,6 +12,7 @@ import { FitZoneLogo } from "@/components/fitzone-logo"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
+import authService from "@/services/authService"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -55,25 +56,49 @@ export default function LoginPage() {
     }
 
     setIsLoading(true)
+    setErrors({})
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log("[v0] Login attempt:", formData)
+      console.log("[FitZone] Intentando login para:", formData.email)
+      
+      // Llamar al backend real usando el servicio
+      const response = await authService.login(formData.email, formData.password)
+      console.log("[FitZone] Respuesta del login:", response)
+      
+      // El backend debería responder con success: true cuando el OTP se envía correctamente
+      if (response.success) {
+        console.log("[FitZone] Login exitoso, se requiere OTP")
+        
+        // Guardar email temporalmente para la verificación OTP
+        localStorage.setItem("pendingLogin", formData.email)
 
-      // Store login data temporarily for OTP verification
-      localStorage.setItem(
-        "pendingLogin",
-        JSON.stringify({
-          email: formData.email,
-          timestamp: new Date().toISOString(),
-        }),
-      )
-
-      // Redirect to OTP verification with login context
-      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=login`)
-    } catch (error) {
-      setErrors({ general: "Error al iniciar sesión. Intenta nuevamente." })
+        // Redirigir a verificación OTP con el contexto de login
+        router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}&type=login`)
+      } else {
+        // Respuesta inesperada del servidor
+        setErrors({ general: response.error || "Error en el servidor. Intenta nuevamente." })
+      }
+    } catch (error: any) {
+      console.error("[FitZone] Error en login:", error)
+      
+      // Mapear errores específicos del backend
+      let errorMessage = "Error al iniciar sesión. Intenta nuevamente."
+      
+      if (error.message) {
+        if (error.message.includes("Credenciales inválidas") || error.message.includes("401")) {
+          errorMessage = "Credenciales incorrectas. Verifica tu email y contraseña."
+        } else if (error.message.includes("network") || error.message.includes("fetch")) {
+          errorMessage = "Error de conexión. Verifica tu conexión a internet y que el backend esté corriendo."
+        } else if (error.message.includes("404")) {
+          errorMessage = "Endpoint no encontrado. Verifica la configuración del backend."
+        } else if (error.message.includes("500")) {
+          errorMessage = "Error interno del servidor. Intenta más tarde."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      setErrors({ general: errorMessage })
     } finally {
       setIsLoading(false)
     }
@@ -84,6 +109,10 @@ export default function LoginPage() {
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
+    }
+    // Clear general error when user modifies any field
+    if (errors.general) {
+      setErrors((prev) => ({ ...prev, general: "" }))
     }
   }
 
@@ -101,7 +130,7 @@ export default function LoginPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
                   VOLVER
@@ -116,11 +145,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-labelledby="login-form">
-                <div id="login-form" className="sr-only">
-                  Formulario de inicio de sesión
-                </div>
-
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Field */}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-white text-sm">
@@ -132,20 +157,15 @@ export default function LoginPage() {
                     placeholder="tu@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 ${
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
                       errors.email ? "border-red-500" : ""
                     }`}
                     required
-                    aria-describedby="email-help email-error"
                     autoComplete="email"
+                    disabled={isLoading}
                   />
-                  <div id="email-help" className="sr-only">
-                    Ingresa tu dirección de correo electrónico registrada
-                  </div>
                   {errors.email && (
-                    <p id="email-error" className="text-red-400 text-sm" role="alert">
-                      {errors.email}
-                    </p>
+                    <p className="text-red-400 text-sm">{errors.email}</p>
                   )}
                 </div>
 
@@ -161,55 +181,65 @@ export default function LoginPage() {
                       placeholder="********"
                       value={formData.password}
                       onChange={(e) => handleInputChange("password", e.target.value)}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 focus:ring-red-500 pr-10 ${
+                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-10 ${
                         errors.password ? "border-red-500" : ""
                       }`}
                       required
-                      aria-describedby="password-help password-error"
                       autoComplete="current-password"
+                      disabled={isLoading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      disabled={isLoading}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  <div id="password-help" className="sr-only">
-                    Ingresa tu contraseña
-                  </div>
                   {errors.password && (
-                    <p id="password-error" className="text-red-400 text-sm" role="alert">
-                      {errors.password}
-                    </p>
+                    <p className="text-red-400 text-sm">{errors.password}</p>
                   )}
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 mt-8 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-                  aria-describedby="login-button-help"
+                  className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white font-semibold py-3 mt-8"
                 >
                   {isLoading ? "Iniciando sesión..." : "INICIAR SESIÓN"}
                 </Button>
-                <div id="login-button-help" className="sr-only">
-                  Hacer clic para iniciar sesión con tus credenciales
-                </div>
               </form>
 
-              <nav className="text-center mt-6" aria-label="Enlaces de registro">
+              <div className="text-center mt-6">
+                <Link
+                  href="/forgot-password"
+                  className="text-red-500 hover:text-red-400 text-sm"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+
+              <div className="text-center mt-4">
                 <span className="text-gray-300">¿No tienes una cuenta? </span>
                 <Link
                   href="/register"
-                  className="text-red-500 hover:text-red-400 font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded px-1"
-                  aria-label="Ir a la página de registro"
+                  className="text-red-500 hover:text-red-400 font-medium"
                 >
                   Regístrate aquí
                 </Link>
-              </nav>
+              </div>
+
+              {/* Información de debug (solo en desarrollo) */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mt-6 p-3 bg-gray-700 rounded text-xs text-gray-300">
+                  <p>🔧 Modo desarrollo</p>
+                  <p>Backend: {typeof window !== 'undefined' ? 
+                    window.location.hostname === 'localhost' ? 
+                    'http://localhost:8080' : 'https://desplieguefitzone.onrender.com' : 
+                    'Verificando...'}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </main>

@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -5,96 +6,140 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import {
-  User,
-  BarChart3,
-  CreditCard,
-  Settings,
-  Calendar,
-  Clock,
-  Flame,
-  LogOut,
-  CheckCircle,
-  TrendingUp,
-  Target,
-  Award,
-  Bell,
-  Activity,
+import { 
+  User, BarChart3, CreditCard, Settings, Calendar, 
+  Clock, Flame, LogOut, CheckCircle, TrendingUp, 
+  Target, Award, Bell, Activity, Loader2 
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
+import { membershipService } from "@/services/membershipService"
+import { MembershipStatusResponse, MembershipTypeName } from "@/types/membership"
+import { userService } from "@/services/userService"
+
 
 export default function DashboardPage() {
   const router = useRouter()
   const [userName, setUserName] = useState("Usuario")
-  const [membershipStatus, setMembershipStatus] = useState("inactive") // inactive, active, premium, vip
-
-  useEffect(() => {
-    // Simular obtener datos del usuario desde localStorage o API
-    const userData = localStorage.getItem("user")
-    if (userData) {
-      const user = JSON.parse(userData)
-      setUserName(user.name || "Usuario")
-      // Simular estado de membresía basado en datos del usuario
-      setMembershipStatus(user.membership || "inactive")
-    }
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/")
-  }
-
-  const currentDate = new Date().toLocaleDateString("es-ES", {
+  const [userId, setUserId] = useState<number | null>(null)
+  const [membershipStatus, setMembershipStatus] = useState<MembershipStatusResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [currentDate] = useState(new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-  })
+  }))
+
+  useEffect(() => {
+    loadUserData()
+  }, [])
+
+ const loadUserData = async () => {
+  try {
+    setLoading(true)
+    const userData = userService.getCurrentUser()
+    if (userData) {
+      setUserName(userData.firstName || userData.email || "Usuario")
+      const userIdNumber = Number(userData.idUser || 0)
+      setUserId(userIdNumber)
+      if (!isNaN(userIdNumber)) {
+        const status = await membershipService.checkMembership(userIdNumber)
+        setMembershipStatus(status)
+      }
+    }
+  } catch (error) {
+    console.error('Error loading user data:', error)
+    setMembershipStatus({
+      isActive: false,
+      status: "INACTIVE",
+      membershipType: MembershipTypeName.NONE,
+    })
+  } finally {
+    setLoading(false)
+  }
+} 
+
+  const handleLogout = () => {
+    userService.clearAuth()
+    router.push('/')
+  }
 
   const getMembershipInfo = () => {
-    switch (membershipStatus) {
-      case "active":
-        return {
-          title: "Membresía Básica Activa",
-          description: "Acceso completo al gimnasio",
-          color: "bg-green-600",
-          icon: CheckCircle,
-          badge: "Activa",
-          badgeColor: "bg-green-100 text-green-800",
-        }
-      case "premium":
-        return {
-          title: "Membresía Premium Activa",
-          description: "Incluye clases grupales y entrenador personal",
-          color: "bg-blue-600",
-          icon: Award,
-          badge: "Premium",
-          badgeColor: "bg-blue-100 text-blue-800",
-        }
-      case "vip":
-        return {
-          title: "Membresía VIP Activa",
-          description: "Acceso completo + nutricionista + sauna",
-          color: "bg-purple-600",
-          icon: Award,
-          badge: "VIP",
-          badgeColor: "bg-purple-100 text-purple-800",
-        }
-      default:
-        return {
-          title: "Sin Membresía Activa",
-          description: "Adquiere una membresía para acceder a todos los beneficios",
-          color: "bg-gray-600",
-          icon: CreditCard,
-          badge: "Inactiva",
-          badgeColor: "bg-gray-100 text-gray-800",
-        }
+    if (!membershipStatus) {
+      return {
+        title: "Cargando estado...",
+        description: "Verificando información de membresía",
+        color: "bg-gray-600",
+        icon: CreditCard,
+        badge: "Cargando",
+        badgeColor: "bg-gray-100 text-gray-800",
+        expiryDate: null
+      }
+    }
+
+    if (membershipStatus.isActive) {
+      const membershipType = membershipStatus.membershipType || "ACTIVE"
+      const expiryDate = membershipStatus.expiryDate ? 
+        new Date(membershipStatus.expiryDate).toLocaleDateString("es-ES") : 
+        "Próximamente"
+      
+      switch (membershipType.toUpperCase()) {
+        case "PREMIUM":
+          return {
+            title: "Membresía Premium Activa",
+            description: `Incluye clases grupales y entrenador personal - Vence: ${expiryDate}`,
+            color: "bg-blue-600",
+            icon: Award,
+            badge: "Premium",
+            badgeColor: "bg-blue-100 text-blue-800",
+            expiryDate
+          }
+        case "VIP":
+          return {
+            title: "Membresía VIP Activa",
+            description: `Acceso completo + clases personalizadas + sauna - Vence: ${expiryDate}`,
+            color: "bg-purple-600",
+            icon: Award,
+            badge: "VIP",
+            badgeColor: "bg-purple-100 text-purple-800",
+            expiryDate
+          }
+        default:
+          return {
+            title: "Membresía Básica Activa",
+            description: `Acceso completo al gimnasio - Vence: ${expiryDate}`,
+            color: "bg-green-600",
+            icon: CheckCircle,
+            badge: "Activa",
+            badgeColor: "bg-green-100 text-green-800",
+            expiryDate
+          }
+      }
+    } else {
+      return {
+        title: "Sin Membresía Activa",
+        description: "Adquiere una membresía para acceder a todos los beneficios",
+        color: "bg-gray-600",
+        icon: CreditCard,
+        badge: "Inactiva",
+        badgeColor: "bg-gray-100 text-gray-800",
+        expiryDate: null
+      }
     }
   }
 
   const membershipInfo = getMembershipInfo()
   const MembershipIcon = membershipInfo.icon
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+        <span className="ml-2">Cargando dashboard...</span>
+      </div>
+    )
+  }
 
   return (
     <AuthGuard requireAuth={true}>
@@ -159,12 +204,12 @@ export default function DashboardPage() {
                         <Badge className={membershipInfo.badgeColor}>{membershipInfo.badge}</Badge>
                       </div>
                       <p className="text-muted-foreground mb-4">{membershipInfo.description}</p>
-                      {membershipStatus === "inactive" && (
+                      {(!membershipStatus || !membershipStatus.isActive) && (
                         <Link href="/membresias">
                           <Button className="bg-red-600 hover:bg-red-700 text-white">Adquirir Membresía</Button>
                         </Link>
                       )}
-                      {membershipStatus !== "inactive" && (
+                      {membershipStatus?.isActive && (
                         <div className="flex space-x-3">
                           <Link href="/membresias">
                             <Button

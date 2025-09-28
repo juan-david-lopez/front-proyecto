@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +10,36 @@ import Link from "next/link"
 import { FitZoneLogo } from "@/components/fitzone-logo"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import authService from "@/services/authService"
+
+// Props personalizadas para los inputs del OTP
+interface OTPInputProps {
+  value: string
+  onChange: (value: string) => void
+  onKeyDown: (e: React.KeyboardEvent) => void
+  disabled?: boolean
+}
+
+// Componente individual de cada input OTP con forwardRef
+const IndividualOTPInput = React.forwardRef<HTMLInputElement, OTPInputProps>(
+  ({ value, onChange, onKeyDown, disabled }, ref) => {
+    return (
+      <Input
+        ref={ref}
+        type="text"
+        inputMode="numeric"
+        maxLength={1}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        onKeyDown={onKeyDown}
+        disabled={disabled}
+        className="w-12 h-12 text-center text-xl font-bold bg-gray-700 border-gray-600 text-white focus:border-red-500"
+      />
+    )
+  }
+)
+
+IndividualOTPInput.displayName = "IndividualOTPInput"
 
 export default function VerifyOTPPage() {
   const router = useRouter()
@@ -21,11 +50,17 @@ export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(300) // 5 minutes
+  const [timeLeft, setTimeLeft] = useState(300)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    if (!email) {
+      router.push(verificationType === "login" ? "/login" : "/register")
+    }
+  }, [email, verificationType, router])
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -35,16 +70,14 @@ export default function VerifyOTPPage() {
   }, [timeLeft])
 
   const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) return // Prevent multiple characters
+    if (value.length > 1) return
 
     const newOtp = [...otp]
     newOtp[index] = value
     setOtp(newOtp)
 
-    // Clear error when user starts typing
     if (error) setError("")
 
-    // Auto-focus next input
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus()
     }
@@ -73,7 +106,6 @@ export default function VerifyOTPPage() {
 
     setOtp(newOtp)
 
-    // Focus the next empty input or the last one
     const nextEmptyIndex = newOtp.findIndex((digit) => !digit)
     const focusIndex = nextEmptyIndex === -1 ? 5 : nextEmptyIndex
     inputRefs.current[focusIndex]?.focus()
@@ -91,46 +123,37 @@ export default function VerifyOTPPage() {
 
     setIsLoading(true)
     setError("")
+    setSuccess("")
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      console.log("[FitZone] Verificando OTP:", { email, otp: otpCode })
 
-      // Simulate validation (in real app, this would be an API call)
-      if (otpCode === "123456") {
-        if (verificationType === "login") {
-          setSuccess("¡Inicio de sesión verificado exitosamente!")
+      const response = await authService.verifyOtp(email, otpCode)
+      console.log("[FitZone] Respuesta de verificación OTP:", response)
 
-          // Clear pending login data and set authenticated user
-          localStorage.removeItem("pendingLogin")
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              email: email,
-              isAuthenticated: true,
-              loginTime: new Date().toISOString(),
-            }),
-          )
-        } else {
-          setSuccess("¡Cuenta verificada exitosamente!")
+      if (response.success) {
+        setSuccess("¡Verificación exitosa! Redirigiendo...")
 
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              email: email,
-              isAuthenticated: true,
-              registrationTime: new Date().toISOString(),
-            }),
-          )
+        if (response.accessToken && response.refreshToken) {
+          authService.setTokens(response.accessToken, response.refreshToken)
         }
+
+        authService.setUserInfo({
+          email: response.email || email,
+          isAuthenticated: true,
+          loginTime: new Date().toISOString(),
+        })
+
+        localStorage.removeItem("pendingLogin")
 
         setTimeout(() => {
           router.push("/dashboard")
         }, 2000)
       } else {
-        setError("Código incorrecto. Intenta nuevamente.")
+        setError(response.error || "Error al verificar el código")
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("[FitZone] Error verificando OTP:", error)
       setError("Error al verificar el código. Intenta nuevamente.")
     } finally {
       setIsLoading(false)
@@ -143,13 +166,14 @@ export default function VerifyOTPPage() {
     setSuccess("")
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      console.log("[FitZone] Reenviando OTP para:", email)
+      await authService.resendOtp(email)
       setSuccess("Código reenviado exitosamente")
-      setTimeLeft(300) // Reset timer
-      setOtp(["", "", "", "", "", ""]) // Clear current OTP
+      setTimeLeft(300)
+      setOtp(["", "", "", "", "", ""])
       inputRefs.current[0]?.focus()
-    } catch (error) {
+    } catch (error: any) {
+      console.error("[FitZone] Error reenviando OTP:", error)
       setError("Error al reenviar el código. Intenta nuevamente.")
     } finally {
       setIsResending(false)
@@ -162,6 +186,10 @@ export default function VerifyOTPPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
+  if (!email) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <header className="absolute top-6 left-1/2 transform -translate-x-1/2">
@@ -171,84 +199,46 @@ export default function VerifyOTPPage() {
       <main className="w-full max-w-md">
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-8">
-            <Link
-              href={verificationType === "login" ? "/login" : "/register"}
-              className="inline-block mb-8"
-              aria-label={verificationType === "login" ? "Volver al inicio de sesión" : "Volver al registro"}
-            >
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 border-red-600 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" />
+            <Link href={verificationType === "login" ? "/login" : "/register"} className="inline-block mb-8">
+              <Button variant="outline" size="sm" className="bg-red-600 hover:bg-red-700 border-red-600 text-white">
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 VOLVER
               </Button>
             </Link>
 
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-white" aria-hidden="true" />
+                <Mail className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-3xl font-bold text-red-500 mb-2">
                 {verificationType === "login" ? "Verificar Inicio de Sesión" : "Verificar Código"}
               </h1>
-              <p className="text-gray-300 text-sm">
-                {verificationType === "login"
-                  ? "Hemos enviado un código de verificación de 6 dígitos para confirmar tu inicio de sesión a"
-                  : "Hemos enviado un código de verificación de 6 dígitos a"}
-              </p>
               <p className="text-white font-medium">{email}</p>
             </div>
 
-            {success && (
-              <div
-                className="bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded mb-6 text-center"
-                role="alert"
-              >
-                {success}
-              </div>
-            )}
-
-            {error && (
-              <div
-                className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6 text-center"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
+            {success && <div className="bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded mb-6 text-center">{success}</div>}
+            {error && <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded mb-6 text-center">{error}</div>}
 
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div className="space-y-2">
                 <Label className="text-white text-sm text-center block">Código de Verificación</Label>
-
                 <div className="flex justify-center space-x-2" onPaste={handlePaste}>
                   {otp.map((digit, index) => (
-                    <Input
+                    <IndividualOTPInput
                       key={index}
-                      ref={(el) => (inputRefs.current[index] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]"
-                      maxLength={1}
+                      ref={(el) => { inputRefs.current[index] = el }}
                       value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value.replace(/\D/g, ""))}
+                      onChange={(value) => handleOtpChange(index, value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
-                      className="w-12 h-12 text-center text-xl font-bold bg-gray-700 border-gray-600 text-white focus:border-red-500 focus:ring-red-500"
-                      aria-label={`Dígito ${index + 1} del código de verificación`}
-                      autoComplete="off"
+                      disabled={isLoading}
                     />
                   ))}
                 </div>
-
                 <div className="text-center mt-4">
                   {timeLeft > 0 ? (
-                    <p className="text-gray-400 text-sm">
-                      El código expira en: <span className="text-red-400 font-mono">{formatTime(timeLeft)}</span>
-                    </p>
+                    <p className="text-gray-400 text-sm">Expira en: <span className="text-red-400 font-mono">{formatTime(timeLeft)}</span></p>
                   ) : (
-                    <p className="text-red-400 text-sm">El código ha expirado</p>
+                    <p className="text-red-400 text-sm">Código expirado</p>
                   )}
                 </div>
               </div>
@@ -256,48 +246,23 @@ export default function VerifyOTPPage() {
               <Button
                 type="submit"
                 disabled={isLoading || otp.join("").length !== 6}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white font-semibold py-3 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-800 text-white font-semibold py-3"
               >
                 {isLoading ? "Verificando..." : "Verificar Código"}
               </Button>
             </form>
 
             <div className="text-center mt-6 space-y-4">
-              <p className="text-gray-300 text-sm">¿No recibiste el código?</p>
-
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleResendOtp}
-                disabled={isResending || timeLeft > 240} // Allow resend after 1 minute
-                className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800"
+                disabled={isResending || timeLeft > 240}
+                className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-50"
               >
-                {isResending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
-                    Reenviando...
-                  </>
-                ) : (
-                  "Reenviar Código"
-                )}
+                {isResending ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Reenviando...</> : "Reenviar Código"}
               </Button>
-
-              {timeLeft > 240 && (
-                <p className="text-gray-500 text-xs">Podrás reenviar el código en {formatTime(timeLeft - 240)}</p>
-              )}
             </div>
-
-            <nav className="text-center mt-6" aria-label="Enlaces de ayuda">
-              <p className="text-gray-400 text-sm">
-                ¿Problemas con la verificación?{" "}
-                <Link
-                  href="/support"
-                  className="text-red-500 hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 rounded"
-                >
-                  Contacta soporte
-                </Link>
-              </p>
-            </nav>
           </CardContent>
         </Card>
       </main>
