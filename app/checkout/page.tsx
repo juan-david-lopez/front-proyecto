@@ -40,7 +40,7 @@ const planData = {
     ],
   },
   elite: {
-    title: "VIP",
+    title: "ELITE",
     price: "$90,000",
     description: "El mejor valor para miembros comprometidos",
     benefits: [

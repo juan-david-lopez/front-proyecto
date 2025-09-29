@@ -77,8 +77,8 @@ export default function MembresíasPage() {
         return 'Básico'
       case 'PREMIUM':
         return 'Premium'
-      case 'VIP':
-        return 'VIP'
+      case 'ELITE':
+        return 'ELITE'
       default:
         return name
     }

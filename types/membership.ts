@@ -2,7 +2,7 @@
 export enum MembershipTypeName {
   BASIC = "BASIC",
   PREMIUM = "PREMIUM",
-  VIP = "VIP",
+  ELITE = "ELITE",
   NONE = "NONE"   // 👈 extra por si no hay membresía
 }
 

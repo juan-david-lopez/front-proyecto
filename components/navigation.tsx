@@ -23,6 +23,9 @@ export function Navigation() {
         <Link href="/membresias" className="text-white hover:text-red-500 transition-colors">
           Membresías
         </Link>
+        <Link href="/reservas" className="text-white hover:text-red-500 transition-colors">
+          Reservas
+        </Link>
         <Link href="/clases" className="text-white hover:text-red-500 transition-colors">
           Clases
         </Link>

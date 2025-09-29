@@ -34,6 +34,13 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
               Membresías
             </Link>
             <Link
+              href="/reservas"
+              className="text-white hover:text-red-500 transition-colors py-2"
+              onClick={onToggle}
+            >
+              Reservas
+            </Link>
+            <Link
               href="/clases"
               className="text-white hover:text-red-500 transition-colors py-2"
               onClick={onToggle}

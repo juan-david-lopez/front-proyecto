@@ -245,3 +245,78 @@
     }
   }
 }
+
+/* Accessibility font size classes */
+html.text-sm {
+  --base-font-size: 14px;
+}
+
+html.text-sm body,
+html.text-sm body * {
+  font-size: calc(var(--base-font-size) * 1) !important;
+}
+
+html.text-base {
+  --base-font-size: 16px;
+}
+
+html.text-base body,
+html.text-base body * {
+  font-size: calc(var(--base-font-size) * 1) !important;
+}
+
+html.text-lg {
+  --base-font-size: 18px;
+}
+
+html.text-lg body,
+html.text-lg body * {
+  font-size: calc(var(--base-font-size) * 1) !important;
+}
+
+html.text-xl {
+  --base-font-size: 22px;
+}
+
+html.text-xl body,
+html.text-xl body * {
+  font-size: calc(var(--base-font-size) * 1) !important;
+}
+
+/* Maintain heading hierarchy with accessibility font sizes */
+html.text-sm h1 { font-size: calc(var(--base-font-size) * 2.25) !important; }
+html.text-sm h2 { font-size: calc(var(--base-font-size) * 1.875) !important; }
+html.text-sm h3 { font-size: calc(var(--base-font-size) * 1.5) !important; }
+html.text-sm h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
+
+html.text-base h1 { font-size: calc(var(--base-font-size) * 2.25) !important; }
+html.text-base h2 { font-size: calc(var(--base-font-size) * 1.875) !important; }
+html.text-base h3 { font-size: calc(var(--base-font-size) * 1.5) !important; }
+html.text-base h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
+
+html.text-lg h1 { font-size: calc(var(--base-font-size) * 2.25) !important; }
+html.text-lg h2 { font-size: calc(var(--base-font-size) * 1.875) !important; }
+html.text-lg h3 { font-size: calc(var(--base-font-size) * 1.5) !important; }
+html.text-lg h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
+
+html.text-xl h1 { font-size: calc(var(--base-font-size) * 2.25) !important; }
+html.text-xl h2 { font-size: calc(var(--base-font-size) * 1.875) !important; }
+html.text-xl h3 { font-size: calc(var(--base-font-size) * 1.5) !important; }
+html.text-xl h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
+
+/* Ensure accessibility button is always visible */
+.accessibility-button {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure accessibility modal is always on top */
+.accessibility-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}

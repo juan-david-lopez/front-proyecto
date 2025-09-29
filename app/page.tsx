@@ -35,7 +35,7 @@ export default function HomePage() {
     },
     {
       idMembershipType: 3,
-      name: MembershipTypeName.VIP,
+      name: MembershipTypeName.ELITE,
       description: "Plan elite",
       monthlyPrice: 90000,
       accessToAllLocation: true,
@@ -123,7 +123,7 @@ export default function HomePage() {
                         <li>Invitaciones para amigos (1/mes)</li>
                       </>
                     )}
-                    {plan.name === MembershipTypeName.VIP && (
+                    {plan.name === MembershipTypeName.ELITE && (
                       <>
                         <li>Todo lo del plan Premium</li>
                         <li>Puede ingresar a cualquier sucursal</li>

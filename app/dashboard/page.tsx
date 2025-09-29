@@ -16,6 +16,8 @@ import { useState, useEffect } from "react"
 import { membershipService } from "@/services/membershipService"
 import { MembershipStatusResponse, MembershipTypeName } from "@/types/membership"
 import { userService } from "@/services/userService"
+import { ReservationWidget } from "@/components/reservation/reservation-widget"
+import { NotificationBell } from "@/components/reservation/notification-bell"
 
 
 export default function DashboardPage() {
@@ -95,13 +97,13 @@ export default function DashboardPage() {
             badgeColor: "bg-blue-100 text-blue-800",
             expiryDate
           }
-        case "VIP":
+        case "ELITE":
           return {
-            title: "Membresía VIP Activa",
+            title: "Membresía ELITE Activa",
             description: `Acceso completo + clases personalizadas + sauna - Vence: ${expiryDate}`,
             color: "bg-purple-600",
             icon: Award,
-            badge: "VIP",
+            badge: "ELITE",
             badgeColor: "bg-purple-100 text-purple-800",
             expiryDate
           }
@@ -161,14 +163,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Notificaciones"
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
+            <NotificationBell />
             <Button
               onClick={handleLogout}
               variant="outline"
@@ -411,6 +406,14 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </div>
+          </section>
+
+          {/* Reservations Section */}
+          <section aria-labelledby="reservations-heading">
+            <h2 id="reservations-heading" className="text-2xl font-bold text-red-500 mb-6">
+              Mis Reservas
+            </h2>
+            <ReservationWidget userId={userId || undefined} />
           </section>
 
           {/* Weekly Progress */}

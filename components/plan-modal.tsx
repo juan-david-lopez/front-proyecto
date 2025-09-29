@@ -81,8 +81,8 @@ export function PlanModal({ isOpen, onClose, plan }: PlanModalProps) {
         return 'Básico'
       case 'PREMIUM':
         return 'Premium'
-      case 'VIP':
-        return 'VIP'
+      case 'ELITE':
+        return 'ELITE'
       default:
         return name
     }
