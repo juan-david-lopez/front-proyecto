@@ -5,18 +5,24 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "inline-flex items-center justify-center rounded-full px-3 py-1.5 text-sm font-semibold w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 transition-all duration-200 shadow-sm hover:shadow-md min-h-[32px]",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+          "bg-gradient-to-r from-blue-600 to-indigo-600 text-white [a&]:hover:from-blue-700 [a&]:hover:to-indigo-700 focus-visible:outline-blue-600",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "bg-gradient-to-r from-gray-200 to-gray-300 text-gray-900 [a&]:hover:from-gray-300 [a&]:hover:to-gray-400 focus-visible:outline-gray-600",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-gradient-to-r from-red-600 to-rose-600 text-white [a&]:hover:from-red-700 [a&]:hover:to-rose-700 focus-visible:outline-red-600",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-2 border-gray-300 text-gray-800 bg-white [a&]:hover:bg-gray-50 [a&]:hover:border-gray-400 focus-visible:outline-gray-600",
+        success:
+          "bg-gradient-to-r from-green-600 to-emerald-600 text-white [a&]:hover:from-green-700 [a&]:hover:to-emerald-700 focus-visible:outline-green-600",
+        warning:
+          "bg-gradient-to-r from-amber-600 to-orange-600 text-white [a&]:hover:from-amber-700 [a&]:hover:to-orange-700 focus-visible:outline-amber-600",
+        premium:
+          "bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white [a&]:hover:from-purple-700 [a&]:hover:via-pink-700 [a&]:hover:to-red-700 shadow-lg focus-visible:outline-purple-600",
       },
     },
     defaultVariants: {

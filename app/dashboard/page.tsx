@@ -18,6 +18,7 @@ import { MembershipStatusResponse, MembershipTypeName } from "@/types/membership
 import { userService } from "@/services/userService"
 import { ReservationWidget } from "@/components/reservation/reservation-widget"
 import { NotificationBell } from "@/components/reservation/notification-bell"
+import { MembershipNotificationBell } from "@/components/membership-notification-bell"
 
 
 export default function DashboardPage() {
@@ -42,7 +43,7 @@ export default function DashboardPage() {
     setLoading(true)
     const userData = userService.getCurrentUser()
     if (userData) {
-      setUserName(userData.firstName || userData.email || "Usuario")
+      setUserName(userData.name || userData.email || "Usuario")
       const userIdNumber = Number(userData.idUser || 0)
       setUserId(userIdNumber)
       if (!isNaN(userIdNumber)) {
@@ -163,6 +164,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center space-x-3">
+            <MembershipNotificationBell />
             <NotificationBell />
             <Button
               onClick={handleLogout}
@@ -206,6 +208,11 @@ export default function DashboardPage() {
                       )}
                       {membershipStatus?.isActive && (
                         <div className="flex space-x-3">
+                          <Link href="/dashboard/membresia">
+                            <Button className="bg-red-600 hover:bg-red-700 text-white">
+                              Gestionar Membresía
+                            </Button>
+                          </Link>
                           <Link href="/membresias">
                             <Button
                               variant="outline"
@@ -214,9 +221,6 @@ export default function DashboardPage() {
                               Cambiar Plan
                             </Button>
                           </Link>
-                          <Button variant="ghost" className="text-muted-foreground">
-                            Ver Detalles
-                          </Button>
                         </div>
                       )}
                     </div>
@@ -266,7 +270,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Link href="/membresias" className="block">
+              <Link href="/dashboard/pagos" className="block">
                 <Card
                   className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer h-full hover:shadow-md"
                   role="gridcell"
@@ -275,12 +279,12 @@ export default function DashboardPage() {
                     <div
                       className="w-12 h-12 bg-gradient-to-br from-orange-600 to-orange-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
                       role="img"
-                      aria-label="Icono de membresías"
+                      aria-label="Icono de pagos"
                     >
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Membresías</h3>
-                    <p className="text-muted-foreground text-sm">Gestionar planes y pagos</p>
+                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Pagos</h3>
+                    <p className="text-muted-foreground text-sm">Historial y recibos</p>
                   </CardContent>
                 </Card>
               </Link>

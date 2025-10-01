@@ -9,7 +9,7 @@ export enum UserRole {
   ADMIN = "ADMIN",
   RECEPTIONIST = "RECEPTIONIST", 
   INSTRUCTOR = "INSTRUCTOR",
-  CLIENT = "CLIENT"
+  MEMBER = "MEMBER" // Cambio: CLIENT → MEMBER para coincidir con backend
 }
 
 export interface UserRequest {
@@ -20,8 +20,8 @@ export interface UserRequest {
   documentNumber: string;
   password: string;
   phoneNumber: string;
-  birthDate: string; // yyyy-MM-dd
-  emergencyContactPhone: string;
+  birthDate: string; // yyyy-MM-dd formato
+  emergencyContactPhone: string; // OBLIGATORIO según backend
   medicalConditions?: string;
   mainLocationId?: number;
   role: UserRole;
@@ -35,19 +35,15 @@ export interface UserUpdateRequest {
   documentNumber: string;
   phoneNumber: string;
   birthDate: string; // yyyy-MM-dd
-  emergencyContactPhone: string;
+  emergencyContactPhone?: string; // Opcional
   medicalConditions?: string;
 }
 
 export interface UserResponse {
   idUser: number;
+  name: string; // Backend devuelve 'name' no firstName/lastName
   email: string;
-  firstName: string;
-  lastName: string;
-  documentType: DocumentType;
-  documentNumber: string;
-  phoneNumber: string;
-  birthDate: string;
+  role: string; // Backend devuelve role como string
   emergencyContactPhone: string;
   medicalConditions?: string;
   userRole: UserRole;

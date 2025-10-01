@@ -4,8 +4,9 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
-import { AccessibilityProvider } from "@/components/accessibility-provider"
-import { GlobalAccessibilityPanel } from "@/components/global-accessibility-panel"
+import { ClientLayout } from "@/components/client-layout"
+import { StorageDebugger } from "@/components/debug/storage-debugger"
+import { LogoutVerifier } from "@/components/debug/logout-verifier"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -22,11 +23,16 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <AccessibilityProvider>
+        <ClientLayout>
           <Suspense fallback={null}>{children}</Suspense>
-          <GlobalAccessibilityPanel />
-        </AccessibilityProvider>
+        </ClientLayout>
         <Analytics />
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            <StorageDebugger />
+            <LogoutVerifier />
+          </>
+        )}
       </body>
     </html>
   )

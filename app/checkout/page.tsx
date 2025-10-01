@@ -5,11 +5,19 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Check, CreditCard } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, Check, CreditCard, Lock, Shield, Crown, Star, Users } from "lucide-react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 import { FitZoneLogo } from "@/components/fitzone-logo"
+import { useAuth } from "@/contexts/auth-context"
+import membershipService from "@/services/membershipService"
+import { receiptService } from "@/services/receiptService"
+import { MembershipType } from "@/types/membership"
+import { PaymentMethod, TransactionType } from "@/types/receipt"
+import { useToast } from "@/hooks/use-toast"
 
 const planData = {
   basico: {
@@ -56,9 +64,16 @@ const planData = {
 }
 
 export default function CheckoutPage() {
+  const { user } = useAuth()
+  const { success: showSuccess, error: showError } = useToast()
   const searchParams = useSearchParams()
-  const planType = (searchParams.get("plan") || "premium") as keyof typeof planData
-  const selectedPlan = planData[planType]
+  const router = useRouter()
+  const planId = searchParams.get("planId")
+  const planName = searchParams.get("planName")
+
+  const [membershipPlan, setMembershipPlan] = useState<MembershipType | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [processing, setProcessing] = useState(false)
 
   const [formData, setFormData] = useState({
     cardNumber: "",
@@ -70,9 +85,103 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     postalCode: "",
+    phone: "",
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const getDisplayName = (name: string) => {
+    switch (name) {
+      case 'BASIC': return 'Básico'
+      case 'PREMIUM': return 'Premium'
+      case 'ELITE': return 'ELITE'
+      default: return name
+    }
+  }
+
+  const getPlanIcon = (name: string) => {
+    switch (name) {
+      case 'BASIC': return <Users className="w-6 h-6" />
+      case 'PREMIUM': return <Star className="w-6 h-6" />
+      case 'ELITE': return <Crown className="w-6 h-6" />
+      default: return <Shield className="w-6 h-6" />
+    }
+  }
+
+  const getPlanFeatures = (membershipType: MembershipType) => {
+    const features = [
+      'Acceso al área de pesas',
+      'Máquinas cardiovasculares', 
+      'Vestuarios y duchas'
+    ]
+
+    if (membershipType.accessToAllLocation) {
+      features.push('Acceso a todas las sucursales')
+    } else {
+      features.push('Acceso a una sola sucursal')
+    }
+
+    if (membershipType.groupClassesSessionsIncluded === -1) {
+      features.push('Clases grupales ilimitadas')
+    } else if (membershipType.groupClassesSessionsIncluded > 0) {
+      features.push(`${membershipType.groupClassesSessionsIncluded} sesiones grupales/mes`)
+    }
+
+    if (membershipType.personalTrainingIncluded > 0) {
+      features.push(`${membershipType.personalTrainingIncluded} entrenamientos personales/mes`)
+    }
+
+    if (membershipType.specializedClassesIncluded) {
+      features.push('Clases especializadas incluidas')
+    }
+
+    return features
+  }
+
+  useEffect(() => {
+    if (!user) {
+      window.location.href = '/login?redirect=' + encodeURIComponent('/checkout' + window.location.search)
+      return
+    }
+    
+    if (planId) {
+      loadMembershipPlan()
+    }
+  }, [planId, user])
+
+  const loadMembershipPlan = async () => {
+    try {
+      setLoading(true)
+      const types = await membershipService.getMembershipTypes()
+      
+      if (!types || types.length === 0) {
+        console.warn('⚠️ No se obtuvieron tipos de membresía');
+        showError("Error", "No se pudieron cargar los planes de membresía. Intenta más tarde.")
+        return;
+      }
+      
+      const plan = types.find(t => t.idMembershipType === parseInt(planId!))
+      if (plan) {
+        setMembershipPlan(plan)
+      } else {
+        showError("Error", "Plan de membresía no encontrado")
+        window.location.href = '/membresias'
+      }
+    } catch (error) {
+      showError("Error", "Error al cargar el plan de membresía")
+      console.error('Error loading membership plan:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -107,12 +216,79 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) {
-      // Procesar pago
-      console.log("Procesando pago...", { plan: planType, ...formData })
-      // Aquí iría la integración con el procesador de pagos
+    
+    if (!validateForm() || !membershipPlan || !user) {
+      return
+    }
+
+    setProcessing(true)
+    try {
+      // Simular procesamiento de pago
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      console.log("Procesando pago...", { plan: membershipPlan.name, ...formData })
+      
+      // Calcular fechas de membresía
+      const startDate = new Date()
+      const endDate = new Date()
+      endDate.setMonth(endDate.getMonth() + 1) // 1 mes de membresía
+      
+      // Determinar método de pago según el número de tarjeta
+      let paymentMethod: PaymentMethod = PaymentMethod.CREDIT_CARD
+      const cardNumber = formData.cardNumber.replace(/\s/g, '')
+      if (cardNumber.startsWith('5')) {
+        paymentMethod = PaymentMethod.CREDIT_CARD // Mastercard
+      } else if (cardNumber.startsWith('4')) {
+        paymentMethod = PaymentMethod.CREDIT_CARD // Visa
+      } else if (cardNumber.startsWith('3')) {
+        paymentMethod = PaymentMethod.CREDIT_CARD // Amex
+      }
+      
+      // Generar recibo
+      const receiptResult = await receiptService.generateReceipt({
+        userId: parseInt(user.id, 10),
+        transactionType: TransactionType.MEMBERSHIP_PURCHASE,
+        membershipType: membershipPlan.name as any, // BASIC, PREMIUM, ELITE
+        membershipStartDate: startDate.toISOString(),
+        membershipEndDate: endDate.toISOString(),
+        amount: membershipPlan.monthlyPrice,
+        paymentMethod: paymentMethod,
+        paymentInfo: {
+          cardLastFour: cardNumber.slice(-4),
+          cardBrand: cardNumber.startsWith('5') ? 'Mastercard' : 
+                     cardNumber.startsWith('4') ? 'Visa' : 
+                     cardNumber.startsWith('3') ? 'American Express' : 'Unknown',
+          transactionId: `TXN_${Date.now()}`
+        },
+        billingInfo: {
+          name: formData.billingName,
+          email: formData.billingEmail,
+          phone: formData.phone || undefined,
+          address: formData.address || undefined,
+          city: formData.city || undefined,
+          country: 'Colombia'
+        },
+        notes: `Pago inicial de membresía ${getDisplayName(membershipPlan.name)}`
+      })
+      
+      if (receiptResult.success && receiptResult.receipt) {
+        
+        showSuccess("¡Pago exitoso!", `Tu membresía ${getDisplayName(membershipPlan.name)} ha sido activada`)
+        
+        // Redirigir a la página del recibo
+        setTimeout(() => {
+          router.push(`/dashboard/pagos/${receiptResult.receipt!.id}`)
+        }, 1500)
+      } else {
+        throw new Error(receiptResult.error || 'Error al generar recibo')
+      }
+    } catch (error) {
+      console.error('Error en el checkout:', error)
+      showError("Error", "Hubo un problema al procesar el pago. Inténtalo de nuevo.")
+    } finally {
+      setProcessing(false)
     }
   }
 
@@ -131,16 +307,44 @@ export default function CheckoutPage() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando información del plan...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!membershipPlan) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Plan no encontrado</p>
+          <Button onClick={() => window.location.href = '/membresias'} className="bg-red-600 hover:bg-red-700">
+            Volver a planes
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Header */}
-      <header className="border-b border-gray-800 p-4">
+      <header className="border-b border-gray-800/50 p-4 bg-black/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2" aria-label="Volver al inicio">
+          <Link href="/membresias" className="flex items-center space-x-2 hover:text-red-400 transition-colors" aria-label="Volver a planes">
             <ArrowLeft className="w-5 h-5" />
-            <span>Volver</span>
+            <span>Volver a planes</span>
           </Link>
-          <FitZoneLogo />
+          <FitZoneLogo 
+            size="lg" 
+            variant="light" 
+            href="/"
+          />
         </div>
       </header>
 
@@ -378,10 +582,21 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <Button
                   type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 text-lg"
-                  aria-label={`Pagar ${selectedPlan.price} por plan ${selectedPlan.title}`}
+                  disabled={processing || !membershipPlan}
+                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                  aria-label={membershipPlan ? `Pagar ${formatPrice(membershipPlan.monthlyPrice)} por plan ${getDisplayName(membershipPlan.name)}` : "Procesar pago"}
                 >
-                  PAGAR AHORA
+                  {processing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      PROCESANDO...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5 mr-2" />
+                      PAGAR AHORA
+                    </>
+                  )}
                 </Button>
                 <Button
                   type="button"
@@ -397,33 +612,62 @@ export default function CheckoutPage() {
 
           {/* Order Summary */}
           <div className="lg:sticky lg:top-6">
-            <div className="bg-gray-900 p-6 rounded-lg">
-              <h2 className="text-2xl font-bold text-red-500 mb-4 text-center">{selectedPlan.title}</h2>
-
-              <p className="text-gray-400 text-center mb-6">{selectedPlan.description}</p>
-
-              <div className="text-center mb-6">
-                <span className="text-4xl font-bold text-white">{selectedPlan.price}</span>
-                <span className="text-gray-400 ml-2">/mes</span>
+            {loading ? (
+              <div className="bg-gray-900 p-6 rounded-lg text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500 mx-auto mb-4"></div>
+                <p className="text-gray-400">Cargando plan...</p>
               </div>
-
-              <div className="space-y-3">
-                {selectedPlan.benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <Check className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{benefit}</span>
+            ) : membershipPlan ? (
+              <Card className="bg-gradient-to-br from-gray-900 to-black border-gray-700">
+                <CardHeader className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    {getPlanIcon(membershipPlan.name)}
+                    <Badge className="bg-red-600 text-white">Plan seleccionado</Badge>
                   </div>
-                ))}
-              </div>
+                  <CardTitle className="text-2xl font-bold text-white mb-2">
+                    {getDisplayName(membershipPlan.name)}
+                  </CardTitle>
+                  <p className="text-gray-400">{membershipPlan.description}</p>
+                </CardHeader>
+                
+                <CardContent className="space-y-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-white mb-1">
+                      {formatPrice(membershipPlan.monthlyPrice)}
+                    </div>
+                    <span className="text-gray-400">/mes</span>
+                  </div>
 
-              <div className="mt-8 pt-6 border-t border-gray-700">
-                <div className="flex justify-between items-center text-lg font-semibold">
-                  <span>Total:</span>
-                  <span className="text-red-500">{selectedPlan.price}</span>
-                </div>
-                <p className="text-gray-400 text-sm mt-2">Facturación mensual • Cancela en cualquier momento</p>
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-white flex items-center gap-2">
+                      <Check className="w-5 h-5 text-green-400" />
+                      Beneficios incluidos:
+                    </h4>
+                    {getPlanFeatures(membershipPlan).map((benefit, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+                        <span className="text-gray-300 text-sm">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-6 border-t border-gray-700">
+                    <div className="flex justify-between items-center text-lg font-semibold mb-2">
+                      <span className="text-gray-300">Total mensual:</span>
+                      <span className="text-red-400">{formatPrice(membershipPlan.monthlyPrice)}</span>
+                    </div>
+                    <p className="text-gray-500 text-sm">
+                      <Lock className="w-4 h-4 inline mr-1" />
+                      Pago seguro • Cancela cuando quieras
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="bg-gray-900 p-6 rounded-lg text-center">
+                <p className="text-red-400">Error al cargar el plan</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

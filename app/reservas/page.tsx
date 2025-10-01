@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Dumbbell, Star, Filter, Search, ArrowRight, CheckCircle, XCircle, Timer, Award, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import {
   Reservation,
@@ -49,7 +49,7 @@ export default function ReservationsPage() {
 
   // Group Classes state
   const [groupClasses, setGroupClasses] = useState<AvailableSlot[]>([]);
-  const [selectedClassType, setSelectedClassType] = useState<GroupClassType | ''>('');
+  const [selectedClassType, setSelectedClassType] = useState<GroupClassType | 'all-types'>('all-types');
   
   // Personal Training state
   const [instructors, setInstructors] = useState<Instructor[]>([]);
@@ -58,7 +58,7 @@ export default function ReservationsPage() {
 
   // Specialized Spaces state
   const [specializedSpaces, setSpecializedSpaces] = useState<AvailableSlot[]>([]);
-  const [selectedSpaceType, setSelectedSpaceType] = useState<SpecializedSpaceType | ''>('');
+  const [selectedSpaceType, setSelectedSpaceType] = useState<SpecializedSpaceType | 'all-spaces'>('all-spaces');
 
   // My reservations
   const [myReservations, setMyReservations] = useState<Reservation[]>([]);
@@ -97,7 +97,7 @@ export default function ReservationsPage() {
       const slots = await reservationService.getGroupClassesSchedule(
         state.selectedDate,
         state.selectedLocation,
-        selectedClassType || undefined
+        selectedClassType === 'all-types' ? undefined : selectedClassType
       );
       setGroupClasses(slots);
       setState(prev => ({ ...prev, loading: false }));
@@ -134,7 +134,7 @@ export default function ReservationsPage() {
       setState(prev => ({ ...prev, loading: true }));
       const slots = await reservationService.getSpecializedSpacesAvailability(
         state.selectedDate,
-        selectedSpaceType || undefined,
+        selectedSpaceType === 'all-spaces' ? undefined : selectedSpaceType,
         state.selectedLocation
       );
       setSpecializedSpaces(slots);
@@ -242,113 +242,229 @@ export default function ReservationsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Sistema de Reservas</h1>
-        <p className="text-muted-foreground mt-2">
-          Reserva clases grupales, entrenamientos personales y espacios especializados
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-gray-100">
+      {/* Header Premium */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
+              <Calendar className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Sistema de Reservas FitZone</h1>
+              <p className="text-gray-600 mt-1">
+                Reserva clases grupales, entrenamientos personales y espacios especializados
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Fecha</label>
-              <Input
-                type="date"
-                value={state.selectedDate}
-                onChange={(e) => setState(prev => ({ ...prev, selectedDate: e.target.value }))}
-                min={new Date().toISOString().split('T')[0]}
-              />
+      <div className="container mx-auto px-6 py-8 space-y-8">
+        {/* Filtros Mejorados */}
+        <Card className="bg-gradient-to-r from-white to-green-50 border-green-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <Filter className="w-4 h-4" />
+              </div>
+              <div>
+                <CardTitle className="text-white">Filtros de Búsqueda</CardTitle>
+                <CardDescription className="text-green-100">Personaliza tu experiencia de reserva</CardDescription>
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">Ubicación</label>
-              <Select
-                value={state.selectedLocation?.toString() || ''}
-                onValueChange={(value) => setState(prev => ({ ...prev, selectedLocation: value ? Number(value) : undefined }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas las ubicaciones" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todas las ubicaciones</SelectItem>
-                  {state.locations.map(location => (
-                    <SelectItem key={location.id} value={location.id.toString()}>
-                      {location.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="group-classes">Clases Grupales</TabsTrigger>
-          <TabsTrigger value="personal-training">Entrenamiento Personal</TabsTrigger>
-          <TabsTrigger value="specialized-spaces">Espacios Especializados</TabsTrigger>
-          <TabsTrigger value="my-reservations">Mis Reservas</TabsTrigger>
-        </TabsList>
-
-        {/* Group Classes Tab */}
-        <TabsContent value="group-classes" className="space-y-6">
-          <div className="flex gap-4">
-            <Select
-              value={selectedClassType}
-              onValueChange={(value) => setSelectedClassType(value as GroupClassType | '')}
-            >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Tipo de clase" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos los tipos</SelectItem>
-                {Object.values(GroupClassType).map(type => (
-                  <SelectItem key={type} value={type}>
-                    {reservationService.getGroupClassTypeDisplayName(type)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {state.loading ? (
-            <div className="text-center py-8">Cargando clases grupales...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {groupClasses.length > 0 ? (
-                groupClasses.map((slot) => (
-                  <AvailabilityCard 
-                    key={`${slot.groupClass?.id || 'gc'}-${slot.startTime}`} 
-                    slot={slot} 
-                    onReserve={handleReservationWithLoading}
-                    isReserving={reservingSlot === slot.groupClass?.id}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  No hay clases grupales disponibles para la fecha seleccionada
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-900 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Fecha de Reserva
+                </label>
+                <Input
+                  type="date"
+                  value={state.selectedDate}
+                  onChange={(e) => setState(prev => ({ ...prev, selectedDate: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="border-green-300 focus:border-green-500 focus:ring-green-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Ubicación del Gimnasio
+                </label>
+                <Select
+                  value={state.selectedLocation?.toString() || ''}
+                  onValueChange={(value) => setState(prev => ({ ...prev, selectedLocation: value === 'all-locations' ? undefined : Number(value) }))}
+                >
+                  <SelectTrigger className="border-green-300 focus:border-green-500">
+                    <SelectValue placeholder="Todas las ubicaciones" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all-locations">Todas las ubicaciones</SelectItem>
+                    {state.locations.map(location => (
+                      <SelectItem key={location.id} value={location.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          {location.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-900 flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  Estado de Disponibilidad
+                </label>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-green-300 text-green-700 hover:bg-green-50 flex-1"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Disponible
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-red-300 text-red-700 hover:bg-red-50 flex-1"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Completo
+                  </Button>
                 </div>
-              )}
+              </div>
             </div>
-          )}
-        </TabsContent>
+          </CardContent>
+        </Card>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="bg-white rounded-xl shadow-sm p-2 mb-8">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="group-classes"
+                className="data-[state=active]:bg-blue-600 data-[state=active]:text-white flex items-center gap-2 transition-all duration-200"
+              >
+                <Users className="w-4 h-4" />
+                Clases Grupales
+              </TabsTrigger>
+              <TabsTrigger 
+                value="personal-training"
+                className="data-[state=active]:bg-green-600 data-[state=active]:text-white flex items-center gap-2 transition-all duration-200"
+              >
+                <Dumbbell className="w-4 h-4" />
+                Entrenamiento Personal
+              </TabsTrigger>
+              <TabsTrigger 
+                value="specialized-spaces"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white flex items-center gap-2 transition-all duration-200"
+              >
+                <Target className="w-4 h-4" />
+                Espacios Especializados
+              </TabsTrigger>
+              <TabsTrigger 
+                value="my-reservations"
+                className="data-[state=active]:bg-orange-600 data-[state=active]:text-white flex items-center gap-2 transition-all duration-200"
+              >
+                <Star className="w-4 h-4" />
+                Mis Reservas
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Group Classes Tab */}
+          <TabsContent value="group-classes" className="space-y-6">
+            <Card className="bg-gradient-to-r from-blue-50 to-white border-blue-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-white">Clases Grupales Disponibles</CardTitle>
+                      <CardDescription className="text-blue-100">Únete a nuestras clases colectivas</CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <Select
+                      value={selectedClassType}
+                      onValueChange={(value) => setSelectedClassType(value === 'all-types' ? 'all-types' : value as GroupClassType)}
+                    >
+                      <SelectTrigger className="w-64 bg-white/10 border-white/30 text-white">
+                        <SelectValue placeholder="Tipo de clase" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-types">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            Todos los tipos
+                          </div>
+                        </SelectItem>
+                        {Object.values(GroupClassType).map(type => (
+                          <SelectItem key={type} value={type}>
+                            <div className="flex items-center gap-2">
+                              <Award className="w-4 h-4" />
+                              {reservationService.getGroupClassTypeDisplayName(type)}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {state.loading ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <Timer className="w-8 h-8 text-blue-500" />
+                    </div>
+                    <p className="text-gray-600 text-lg">Cargando clases grupales...</p>
+                    <p className="text-gray-500 text-sm">Buscando las mejores opciones para ti</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {groupClasses.length > 0 ? (
+                      groupClasses.map((slot) => (
+                        <AvailabilityCard 
+                          key={`${slot.groupClass?.id || 'gc'}-${slot.startTime}`} 
+                          slot={slot} 
+                          onReserve={handleReservationWithLoading}
+                          isReserving={reservingSlot === slot.groupClass?.id}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-12">
+                        <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Users className="w-12 h-12 text-blue-500" />
+                        </div>
+                        <p className="text-gray-600 text-lg mb-2">No hay clases grupales disponibles</p>
+                        <p className="text-gray-500 text-sm">Para la fecha seleccionada. Intenta con otra fecha.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
         {/* Personal Training Tab */}
         <TabsContent value="personal-training" className="space-y-6">
           <div className="flex gap-4">
             <Select
               value={selectedInstructor?.toString() || ''}
-              onValueChange={(value) => setSelectedInstructor(value ? Number(value) : undefined)}
+              onValueChange={(value) => setSelectedInstructor(value === 'all-instructors' ? undefined : Number(value))}
             >
               <SelectTrigger className="w-64">
                 <SelectValue placeholder="Instructor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los instructores</SelectItem>
+                <SelectItem value="all-instructors">Todos los instructores</SelectItem>
                 {instructors.map(instructor => (
                   <SelectItem key={instructor.id} value={instructor.id.toString()}>
                     {instructor.firstName} {instructor.lastName}
@@ -385,13 +501,13 @@ export default function ReservationsPage() {
           <div className="flex gap-4">
             <Select
               value={selectedSpaceType}
-              onValueChange={(value) => setSelectedSpaceType(value as SpecializedSpaceType | '')}
+              onValueChange={(value) => setSelectedSpaceType(value === 'all-spaces' ? 'all-spaces' : value as SpecializedSpaceType)}
             >
               <SelectTrigger className="w-64">
                 <SelectValue placeholder="Tipo de espacio" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos los espacios</SelectItem>
+                <SelectItem value="all-spaces">Todos los espacios</SelectItem>
                 {Object.values(SpecializedSpaceType).map(type => (
                   <SelectItem key={type} value={type}>
                     {reservationService.getSpecializedSpaceTypeDisplayName(type)}
@@ -446,7 +562,8 @@ export default function ReservationsPage() {
             </div>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }

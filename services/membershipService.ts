@@ -39,7 +39,7 @@ class MembershipService {
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    console.log('🔗 Making request to:', url);
+    console.log('🔗 [MembershipService] Making request to:', url);
 
     const defaultOptions: RequestInit = {
       headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -47,31 +47,55 @@ class MembershipService {
     };
 
     const token = this.getAccessToken();
-    if (token) defaultOptions.headers = { ...defaultOptions.headers, Authorization: `Bearer ${token}` };
+    if (token) {
+      defaultOptions.headers = { ...defaultOptions.headers, Authorization: `Bearer ${token}` };
+      console.log('🔑 [MembershipService] Token añadido al request');
+    } else {
+      console.log('⚠️ [MembershipService] No hay token disponible');
+    }
 
     try {
       const response = await fetch(url, defaultOptions);
-      console.log('📥 Response status:', response.status);
+      console.log('📥 [MembershipService] Response status:', response.status, response.statusText);
 
       if (response.status === 204) return {} as T;
 
       const text = await response.text();
-      console.log('📥 Raw response text:', text);
+      console.log('📥 [MembershipService] Raw response text:', text);
+
+      // Manejar respuestas vacías específicamente
+      if (!text || text.trim() === '') {
+        console.warn('⚠️ [MembershipService] Respuesta vacía del servidor');
+        
+        // Si es un endpoint de membresías y la respuesta está vacía, devolver array vacío
+        if (endpoint === '/membership-types') {
+          console.log('🔄 [MembershipService] Devolviendo array vacío para membership-types');
+          return { data: [] } as T;
+        }
+        
+        throw new Error('El servidor devolvió una respuesta vacía');
+      }
 
       let data;
-      try { data = text ? JSON.parse(text) : { success: false, error: 'Empty response' }; }
-      catch { throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`); }
+      try { 
+        data = text ? JSON.parse(text) : { success: false, error: 'Empty response' }; 
+      }
+      catch (parseError) { 
+        console.error('❌ [MembershipService] Error parseando JSON:', parseError);
+        throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`); 
+      }
 
-      console.log('📥 Parsed response data:', data);
+      console.log('📥 [MembershipService] Parsed response data:', data);
 
       if (!response.ok) {
         const errorMessage = data.error || data.message || `HTTP error! status: ${response.status}`;
+        console.error('❌ [MembershipService] HTTP Error:', errorMessage);
         throw new Error(errorMessage);
       }
 
       return data;
     } catch (error) {
-      console.error('❌ API Request failed:', error);
+      console.error('❌ [MembershipService] API Request failed:', error);
       throw error;
     }
   }
@@ -85,8 +109,32 @@ class MembershipService {
   // Membership Types
   // ---------------------------
   async getMembershipTypes(): Promise<MembershipTypeResponse[]> {
-    const response = await this.request<ApiResponse<MembershipTypeResponse[]>>('/membership-types');
-    return response.data || [];
+    try {
+      console.log('🔄 [MembershipService] Obteniendo tipos de membresía...');
+      const response = await this.request<ApiResponse<MembershipTypeResponse[]>>('/membership-types');
+      console.log('✅ [MembershipService] Tipos de membresía obtenidos:', response);
+      
+      // Manejar diferentes formatos de respuesta
+      if (Array.isArray(response)) {
+        return response;
+      }
+      
+      if (response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      if (response.success && response.data) {
+        return Array.isArray(response.data) ? response.data : [];
+      }
+      
+      console.warn('⚠️ [MembershipService] Formato de respuesta inesperado:', response);
+      return [];
+      
+    } catch (error) {
+      console.error('❌ [MembershipService] Error obteniendo tipos de membresía:', error);
+      // En lugar de fallar, devolver array vacío como fallback
+      return [];
+    }
   }
 
   async getMembershipTypeById(id: number): Promise<MembershipTypeResponse> {

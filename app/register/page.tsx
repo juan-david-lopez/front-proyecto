@@ -16,6 +16,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { userService } from "@/services/userService"
+import authService from "@/services/authService"
 import { DocumentType, UserRole } from "@/types/user"
 
 // Definir el tipo para el formulario
@@ -28,6 +29,7 @@ interface FormData {
   password: string;
   confirmPassword: string;
   phoneNumber: string;
+  emergencyContactPhone: string; // Campo obligatorio según backend
   birthDate: string;
   medicalConditions: string;
   mainLocationId: string;
@@ -50,10 +52,11 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     phoneNumber: "",
+    emergencyContactPhone: "", // Campo obligatorio
     birthDate: "",
     medicalConditions: "",
     mainLocationId: "",
-    role: UserRole.CLIENT,
+    role: UserRole.MEMBER,
     terms: false,
   })
 
@@ -69,7 +72,7 @@ export default function RegisterPage() {
 
   // Mapeo de roles del frontend al backend
   const roleMap: { [key: string]: UserRole } = {
-    "miembro": UserRole.CLIENT,
+    "miembro": UserRole.MEMBER,
     "entrenador": UserRole.INSTRUCTOR,
     "admin": UserRole.ADMIN
   }
@@ -160,6 +163,12 @@ export default function RegisterPage() {
       newErrors.phoneNumber = "Ingresa un número de teléfono válido"
     }
 
+    if (!formData.emergencyContactPhone) {
+      newErrors.emergencyContactPhone = "El teléfono de emergencia es requerido"
+    } else if (!validatePhone(formData.emergencyContactPhone)) {
+      newErrors.emergencyContactPhone = "Ingresa un teléfono de emergencia válido"
+    }
+
     if (!formData.birthDate) {
       newErrors.birthDate = "La fecha de nacimiento es requerida"
     } else if (!validateAge(formData.birthDate)) {
@@ -224,11 +233,11 @@ export default function RegisterPage() {
         documentNumber: formData.documentNumber.trim(),
         password: formData.password,
         phoneNumber: formData.phoneNumber.trim(),
+        emergencyContactPhone: formData.emergencyContactPhone.trim(), // Campo obligatorio
         birthDate: formData.birthDate,
-        emergencyContactPhone: formData.phoneNumber.trim(),
         medicalConditions: formData.medicalConditions.trim() || "",
         mainLocationId: formData.mainLocationId ? locationMap[formData.mainLocationId] : undefined,
-        role: roleMap[formData.role] || UserRole.CLIENT
+        role: roleMap[formData.role] || UserRole.MEMBER
       }
 
       console.log("Enviando datos de registro:", userData)
@@ -238,15 +247,34 @@ export default function RegisterPage() {
 
       console.log("Usuario registrado exitosamente:", response)
 
-      // Mostrar mensaje de éxito y redirigir
-      setErrors({ 
-        success: "¡Registro exitoso! Serás redirigido al login." 
-      })
+      // Después del registro exitoso, solicitar OTP para verificación
+      try {
+        console.log("Solicitando envío de OTP para verificación...")
+        await authService.resendOtp(formData.email.trim())
+        
+        setErrors({ 
+          success: "¡Registro exitoso! Se ha enviado un código de verificación a tu correo." 
+        })
 
-      // Redirigir al login después de 2 segundos
-      setTimeout(() => {
-        router.push("/login")
-      }, 2000)
+        // Redirigir a verificación OTP después de 2 segundos
+        setTimeout(() => {
+          router.push(`/verify-otp?email=${encodeURIComponent(formData.email.trim())}&type=register`)
+        }, 2000)
+        
+      } catch (otpError: any) {
+        console.error("Error al enviar OTP:", otpError)
+        // Si falla el envío del OTP, redirigir manualmente
+        setErrors({ 
+          success: "¡Registro exitoso! Haz clic en 'Continuar' para verificar tu cuenta."
+        })
+        
+        // Agregar botón para continuar manualmente
+        setTimeout(() => {
+          if (window.confirm("¿Deseas continuar a la verificación OTP?")) {
+            router.push(`/verify-otp?email=${encodeURIComponent(formData.email.trim())}&type=register`)
+          }
+        }, 3000)
+      }
 
     } catch (error: any) {
       console.error("Error en el registro:", error)
@@ -273,7 +301,11 @@ export default function RegisterPage() {
     <AuthGuard requireAuth={false}>
       <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8">
         <header className="absolute top-6 left-1/2 transform -translate-x-1/2">
-          <FitZoneLogo />
+          <FitZoneLogo 
+            size="lg" 
+            variant="light" 
+            href="/"
+          />
         </header>
 
         <main className="w-full max-w-md mt-20">
@@ -502,6 +534,28 @@ export default function RegisterPage() {
                   />
                   {errors.phoneNumber && (
                     <p className="text-red-400 text-sm">{errors.phoneNumber}</p>
+                  )}
+                </div>
+
+                {/* Emergency Contact Phone Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="emergencyContactPhone" className="text-white text-sm">
+                    Teléfono de Emergencia
+                  </Label>
+                  <Input
+                    id="emergencyContactPhone"
+                    type="tel"
+                    placeholder="Teléfono de contacto de emergencia"
+                    value={formData.emergencyContactPhone}
+                    onChange={handleTextChange("emergencyContactPhone")}
+                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                      errors.emergencyContactPhone ? "border-red-500" : ""
+                    }`}
+                    required
+                    autoComplete="tel"
+                  />
+                  {errors.emergencyContactPhone && (
+                    <p className="text-red-400 text-sm">{errors.emergencyContactPhone}</p>
                   )}
                 </div>
 

@@ -123,6 +123,11 @@ export function useReservationNotifications() {
           }
         });
       } catch (error) {
+        // Silenciar errores de conexión para evitar spam en consola
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          // Servidor no disponible, no hacer nada
+          return;
+        }
         console.error('Error checking upcoming reservations:', error);
       }
     };
