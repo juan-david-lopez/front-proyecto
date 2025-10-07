@@ -9,7 +9,7 @@ import { MobileMenu } from "@/components/mobile-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
-import { LogOut, User, Settings, Users, BarChart3, ArrowLeft, ChevronDown, Bell, Search } from "lucide-react"
+import { LogOut, User, Settings, Users, BarChart3, ArrowLeft, ChevronDown, Bell, Search, Gift } from "lucide-react"
 
 export function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -66,6 +66,10 @@ export function Navigation() {
                 <Link href="/reservas" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                   <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span>Reservas</span>
+                </Link>
+                <Link href="/fidelizacion" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
+                  <Gift className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                  <span>Fidelización</span>
                 </Link>
               </>
             )}

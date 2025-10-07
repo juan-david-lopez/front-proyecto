@@ -163,7 +163,7 @@ export default function MembresíasPage() {
             <Zap className="w-5 h-5 text-red-400" />
             <span className="text-red-400 font-medium">Planes exclusivos</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-secondary bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gradient-hero">
             Planes de Membresía
           </h1>
           <p className="text-xl text-theme-secondary max-w-2xl mx-auto leading-relaxed mb-8">
@@ -218,9 +218,9 @@ export default function MembresíasPage() {
               <CardContent className="p-8 text-center flex flex-col flex-1">
                 <div className="mb-6">
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${
-                    index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
-                    index === 1 ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                    'bg-gradient-to-br from-yellow-500 to-yellow-600'
+                    index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500' :
+                    index === 1 ? 'bg-gradient-to-br from-red-500 to-red-600 dark:from-red-400 dark:to-red-500' :
+                    'bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500'
                   }`}>
                     {index === 0 && <Heart className="w-8 h-8 text-white" />}
                     {index === 1 && <Star className="w-8 h-8 text-white" />}
@@ -324,7 +324,7 @@ export default function MembresíasPage() {
                   className={`w-full py-4 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                     index === 1 
                       ? 'btn-primary-red' 
-                      : 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white'
+                      : 'bg-theme-secondary hover:bg-theme-secondary/80 text-theme-primary border border-theme'
                   }`}
                 >
                   <Trophy className="w-5 h-5 mr-2" />

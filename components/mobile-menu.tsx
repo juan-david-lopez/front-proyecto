@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, X, LogOut, ArrowLeft, User, Settings, Users, BarChart3 } from "lucide-react"
+import { Menu, X, LogOut, ArrowLeft, User, Settings, Users, BarChart3, Gift } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
@@ -83,6 +83,16 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                   >
                     <Settings className="h-4 w-4" />
                     Administración
+                  </Link>
+                )}
+                {user.role === 'MEMBER' && (
+                  <Link
+                    href="/fidelizacion"
+                    className="text-theme-primary hover:text-red-500 transition-colors py-2 flex items-center gap-2"
+                    onClick={onToggle}
+                  >
+                    <Gift className="h-4 w-4" />
+                    Fidelización
                   </Link>
                 )}
 

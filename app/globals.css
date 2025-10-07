@@ -11,9 +11,9 @@
 .dark-theme {
   --background: #000000;
   --foreground: #ffffff;
-  --card: #111111;
+  --card: #000000;
   --card-foreground: #ffffff;
-  --popover: #111111;
+  --popover: #000000;
   --popover-foreground: #ffffff;
   --primary: #dc2626;
   --primary-foreground: #ffffff;
@@ -192,9 +192,9 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(0 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: oklch(0 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.985 0 0);
   --primary-foreground: oklch(0.205 0 0);
@@ -1063,5 +1063,245 @@ html.text-xl h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* ========================================
+   LOYALTY / FIDELIZACIÓN - Colores de Niveles
+   ======================================== */
+
+/* BRONCE */
+.tier-bronce-primary {
+  color: #CD7F32;
+}
+
+.tier-bronce-bg {
+  background-color: #CD7F32;
+}
+
+.tier-bronce-gradient {
+  background: linear-gradient(135deg, #CD7F32 0%, #E8A87C 100%);
+}
+
+.tier-bronce-border {
+  border-color: #CD7F32;
+}
+
+/* PLATA */
+.tier-plata-primary {
+  color: #C0C0C0;
+}
+
+.tier-plata-bg {
+  background-color: #C0C0C0;
+}
+
+.tier-plata-gradient {
+  background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 100%);
+}
+
+.tier-plata-border {
+  border-color: #C0C0C0;
+}
+
+/* ORO */
+.tier-oro-primary {
+  color: #FFD700;
+}
+
+.tier-oro-bg {
+  background-color: #FFD700;
+}
+
+.tier-oro-gradient {
+  background: linear-gradient(135deg, #FFD700 0%, #FFED4E 100%);
+}
+
+.tier-oro-border {
+  border-color: #FFD700;
+}
+
+/* PLATINO */
+.tier-platino-primary {
+  color: #E5E4E2;
+}
+
+.tier-platino-bg {
+  background-color: #E5E4E2;
+}
+
+.tier-platino-gradient {
+  background: linear-gradient(135deg, #B9F2FF 0%, #E5E4E2 100%);
+}
+
+.tier-platino-border {
+  border-color: #00CED1;
+}
+
+.tier-platino-accent {
+  color: #00CED1;
+}
+
+/* Badge de nivel animado */
+.loyalty-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.loyalty-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+.loyalty-badge.tier-bronce:hover {
+  box-shadow: 0 0 30px rgba(205, 127, 50, 0.4);
+}
+
+.loyalty-badge.tier-plata:hover {
+  box-shadow: 0 0 30px rgba(192, 192, 192, 0.4);
+}
+
+.loyalty-badge.tier-oro:hover {
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+}
+
+.loyalty-badge.tier-platino:hover {
+  box-shadow: 0 0 30px rgba(0, 206, 209, 0.4);
+}
+
+/* Animación de puntos ganados */
+@keyframes pointsFloat {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
+
+.points-float {
+  animation: pointsFloat 1.5s ease-out forwards;
+}
+
+/* Brillo para badge de nivel */
+@keyframes badgeShine {
+  0% {
+    background-position: -100%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+.badge-shine {
+  background-size: 200% auto;
+  animation: badgeShine 3s linear infinite;
+}
+
+/* Estado de recompensa */
+.reward-card-affordable {
+  border: 2px solid var(--fitzone-success);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+}
+
+.reward-card-locked {
+  opacity: 0.6;
+  filter: grayscale(40%);
+}
+
+/* Código de canje */
+.redemption-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, var(--fitzone-bg-tertiary), var(--fitzone-bg-secondary));
+  border: 2px dashed var(--fitzone-border-primary);
+  border-radius: 0.5rem;
+  text-align: center;
+  user-select: all;
+  transition: all 0.3s ease;
+}
+
+.redemption-code:hover {
+  background: linear-gradient(135deg, var(--fitzone-red-primary), var(--fitzone-red-hover));
+  border-color: var(--fitzone-red-primary);
+  color: white;
+}
+
+/* Timeline de progreso */
+.tier-timeline {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 2rem 0;
+}
+
+.tier-timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--fitzone-border-primary);
+  transform: translateY(-50%);
+}
+
+.tier-milestone {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tier-milestone-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fitzone-bg-secondary);
+  border: 4px solid var(--fitzone-border-primary);
+  transition: all 0.3s ease;
+}
+
+.tier-milestone.active .tier-milestone-dot {
+  width: 32px;
+  height: 32px;
+  border-color: var(--fitzone-red-primary);
+  background: var(--fitzone-red-primary);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+}
+
+.tier-milestone.completed .tier-milestone-dot {
+  background: var(--fitzone-success);
+  border-color: var(--fitzone-success);
+}
+
+/* Scrollbar personalizado para listas de fidelización */
+.loyalty-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.loyalty-scrollbar::-webkit-scrollbar-track {
+  background: var(--fitzone-bg-secondary);
+  border-radius: 4px;
+}
+
+.loyalty-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--fitzone-border-primary);
+  border-radius: 4px;
+}
+
+.loyalty-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--fitzone-red-primary);
 }
 
