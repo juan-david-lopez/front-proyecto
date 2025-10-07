@@ -299,7 +299,7 @@ export default function RegisterPage() {
 
   return (
     <AuthGuard requireAuth={false}>
-      <div className="min-h-screen bg-black flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center px-4 py-8">
         <header className="absolute top-6 left-1/2 transform -translate-x-1/2">
           <FitZoneLogo 
             size="lg" 
@@ -309,7 +309,7 @@ export default function RegisterPage() {
         </header>
 
         <main className="w-full max-w-md mt-20">
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="card-theme border-theme">
             <CardContent className="p-8">
               <Link href="/" className="inline-block mb-8" aria-label="Volver a la página principal">
                 <Button
@@ -339,7 +339,7 @@ export default function RegisterPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-white text-sm">
+                  <Label htmlFor="firstName" className="text-theme-primary text-sm">
                     Nombre
                   </Label>
                   <Input
@@ -348,7 +348,7 @@ export default function RegisterPage() {
                     placeholder="Tu nombre"
                     value={formData.firstName}
                     onChange={handleTextChange("firstName")}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.firstName ? "border-red-500" : ""
                     }`}
                     required
@@ -361,7 +361,7 @@ export default function RegisterPage() {
 
                 {/* Last Name Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-white text-sm">
+                  <Label htmlFor="lastName" className="text-theme-primary text-sm">
                     Apellido
                   </Label>
                   <Input
@@ -370,7 +370,7 @@ export default function RegisterPage() {
                     placeholder="Tu apellido"
                     value={formData.lastName}
                     onChange={handleTextChange("lastName")}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.lastName ? "border-red-500" : ""
                     }`}
                     required
@@ -383,7 +383,7 @@ export default function RegisterPage() {
 
                 {/* Email Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white text-sm">
+                  <Label htmlFor="email" className="text-theme-primary text-sm">
                     Correo Electrónico
                   </Label>
                   <Input
@@ -392,7 +392,7 @@ export default function RegisterPage() {
                     placeholder="tu@email.com"
                     value={formData.email}
                     onChange={handleTextChange("email")}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.email ? "border-red-500" : ""
                     }`}
                     required
@@ -405,7 +405,7 @@ export default function RegisterPage() {
 
                 {/* Document Type Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="documentType" className="text-white text-sm">
+                  <Label htmlFor="documentType" className="text-theme-primary text-sm">
                     Tipo de Documento
                   </Label>
                   <Select
@@ -414,13 +414,13 @@ export default function RegisterPage() {
                     required
                   >
                     <SelectTrigger
-                      className={`bg-gray-700 border-gray-600 text-white focus:border-red-500 ${
+                      className={`bg-theme-secondary/30 border-theme text-theme-primary focus:border-red-500 ${
                         errors.documentType ? "border-red-500" : ""
                       }`}
                     >
                       <SelectValue placeholder="Selecciona un tipo" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-theme-secondary border-theme">
                       <SelectItem value="cedula">Cédula de Ciudadanía</SelectItem>
                       <SelectItem value="tarjeta">Tarjeta de Identidad</SelectItem>
                       <SelectItem value="pasaporte">Pasaporte</SelectItem>
@@ -434,7 +434,7 @@ export default function RegisterPage() {
 
                 {/* Document Number Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="documentNumber" className="text-white text-sm">
+                  <Label htmlFor="documentNumber" className="text-theme-primary text-sm">
                     Número de Documento
                   </Label>
                   <Input
@@ -443,7 +443,7 @@ export default function RegisterPage() {
                     placeholder="Número de documento"
                     value={formData.documentNumber}
                     onChange={(e) => handleInputChange("documentNumber", e.target.value.replace(/\D/g, ""))}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.documentNumber ? "border-red-500" : ""
                     }`}
                     required
@@ -455,7 +455,7 @@ export default function RegisterPage() {
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white text-sm">
+                  <Label htmlFor="password" className="text-theme-primary text-sm">
                     Contraseña
                   </Label>
                   <div className="relative">
@@ -465,7 +465,7 @@ export default function RegisterPage() {
                       placeholder="********"
                       value={formData.password}
                       onChange={handleTextChange("password")}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-10 ${
+                      className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 pr-10 ${
                         errors.password ? "border-red-500" : ""
                       }`}
                       required
@@ -474,7 +474,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-theme-secondary hover:text-theme-primary"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -486,7 +486,7 @@ export default function RegisterPage() {
 
                 {/* Confirm Password Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-white text-sm">
+                  <Label htmlFor="confirmPassword" className="text-theme-primary text-sm">
                     Confirmar Contraseña
                   </Label>
                   <div className="relative">
@@ -496,7 +496,7 @@ export default function RegisterPage() {
                       placeholder="********"
                       value={formData.confirmPassword}
                       onChange={handleTextChange("confirmPassword")}
-                      className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-10 ${
+                      className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 pr-10 ${
                         errors.confirmPassword ? "border-red-500" : ""
                       }`}
                       required
@@ -505,7 +505,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-theme-secondary hover:text-theme-primary"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -517,7 +517,7 @@ export default function RegisterPage() {
 
                 {/* Phone Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber" className="text-white text-sm">
+                  <Label htmlFor="phoneNumber" className="text-theme-primary text-sm">
                     Teléfono
                   </Label>
                   <Input
@@ -526,7 +526,7 @@ export default function RegisterPage() {
                     placeholder="Número de teléfono"
                     value={formData.phoneNumber}
                     onChange={handleTextChange("phoneNumber")}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.phoneNumber ? "border-red-500" : ""
                     }`}
                     required
@@ -539,7 +539,7 @@ export default function RegisterPage() {
 
                 {/* Emergency Contact Phone Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="emergencyContactPhone" className="text-white text-sm">
+                  <Label htmlFor="emergencyContactPhone" className="text-theme-primary text-sm">
                     Teléfono de Emergencia
                   </Label>
                   <Input
@@ -548,7 +548,7 @@ export default function RegisterPage() {
                     placeholder="Teléfono de contacto de emergencia"
                     value={formData.emergencyContactPhone}
                     onChange={handleTextChange("emergencyContactPhone")}
-                    className={`bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 ${
+                    className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 ${
                       errors.emergencyContactPhone ? "border-red-500" : ""
                     }`}
                     required
@@ -561,7 +561,7 @@ export default function RegisterPage() {
 
                 {/* Birth Date Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="birthDate" className="text-white text-sm">
+                  <Label htmlFor="birthDate" className="text-theme-primary text-sm">
                     Fecha de Nacimiento
                   </Label>
                   <div className="relative">
@@ -570,13 +570,13 @@ export default function RegisterPage() {
                       type="date"
                       value={formData.birthDate}
                       onChange={handleTextChange("birthDate")}
-                      className={`bg-gray-700 border-gray-600 text-white focus:border-red-500 ${
+                      className={`bg-theme-secondary/30 border-theme text-theme-primary focus:border-red-500 ${
                         errors.birthDate ? "border-red-500" : ""
                       }`}
                       required
                       autoComplete="bday"
                     />
-                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-secondary" />
                   </div>
                   {errors.birthDate && (
                     <p className="text-red-400 text-sm">{errors.birthDate}</p>
@@ -585,7 +585,7 @@ export default function RegisterPage() {
 
                 {/* Medical Conditions Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="medicalConditions" className="text-white text-sm">
+                  <Label htmlFor="medicalConditions" className="text-theme-primary text-sm">
                     Condiciones Médicas (Opcional)
                   </Label>
                   <Textarea
@@ -593,20 +593,20 @@ export default function RegisterPage() {
                     placeholder="Escribe tus condiciones médicas relevantes"
                     value={formData.medicalConditions}
                     onChange={handleTextChange("medicalConditions")}
-                    className="bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 min-h-[80px]"
+                    className="bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 min-h-[80px]"
                   />
                 </div>
 
                 {/* Main Branch Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="mainLocationId" className="text-white text-sm">
+                  <Label htmlFor="mainLocationId" className="text-theme-primary text-sm">
                     Sede Principal (Opcional)
                   </Label>
                   <Select value={formData.mainLocationId} onValueChange={handleSelectChange("mainLocationId")}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white focus:border-red-500">
+                    <SelectTrigger className="bg-theme-secondary/30 border-theme text-theme-primary focus:border-red-500">
                       <SelectValue placeholder="Selecciona una sede" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-theme-secondary border-theme">
                       <SelectItem value="norte">Sede Norte</SelectItem>
                       <SelectItem value="sur">Sede Sur</SelectItem>
                       <SelectItem value="centro">Sede Centro</SelectItem>
@@ -617,14 +617,14 @@ export default function RegisterPage() {
 
                 {/* Role Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="role" className="text-white text-sm">
+                  <Label htmlFor="role" className="text-theme-primary text-sm">
                     Tipo de Usuario
                   </Label>
                   <Select value={formData.role} onValueChange={handleSelectChange("role")}>
-                    <SelectTrigger className="bg-gray-700 border-gray-600 text-white focus:border-red-500">
+                    <SelectTrigger className="bg-theme-secondary/30 border-theme text-theme-primary focus:border-red-500">
                       <SelectValue placeholder="Selecciona tu rol" />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-700 border-gray-600">
+                    <SelectContent className="bg-theme-secondary border-theme">
                       <SelectItem value="miembro">Miembro</SelectItem>
                       <SelectItem value="entrenador">Entrenador</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
@@ -638,13 +638,13 @@ export default function RegisterPage() {
                     id="terms"
                     checked={formData.terms}
                     onCheckedChange={handleCheckboxChange("terms")}
-                    className={`border-gray-600 data-[state=checked]:bg-red-600 ${
+                    className={`border-theme data-[state=checked]:bg-red-600 ${
                       errors.terms ? "border-red-500" : ""
                     }`}
                     required
                   />
                   <div className="space-y-1">
-                    <Label htmlFor="terms" className="text-sm text-white leading-relaxed">
+                    <Label htmlFor="terms" className="text-sm text-theme-primary leading-relaxed">
                       Acepto los{" "}
                       <Link href="/terms" className="text-red-500 hover:text-red-400">
                         términos y condiciones
@@ -670,7 +670,7 @@ export default function RegisterPage() {
               </form>
 
               <div className="text-center mt-6">
-                <span className="text-gray-300">¿Ya tienes una cuenta? </span>
+                <span className="text-theme-secondary">¿Ya tienes una cuenta? </span>
                 <Link href="/login" className="text-red-500 hover:text-red-400 font-medium">
                   Inicia sesión aquí
                 </Link>

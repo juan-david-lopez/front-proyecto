@@ -95,11 +95,18 @@ class AuthService {
 
   // Verificar OTP para REGISTRO
   async verifyOtp(email: string, otp: string, type?: string): Promise<ApiResponse> {
-    console.log("🔗 Verificando OTP de REGISTRO con:", { email, otp, type });
+    // Si no se proporciona type, usar "register" por defecto
+    const verificationType = type || "register";
+    console.log("🔗 Verificando OTP de REGISTRO con:", { email, otp, type: verificationType });
     
     // Probar primero con body JSON incluyendo el tipo
     try {
-      const body = type ? { email, otp, type } : { email, otp };
+      const body = { 
+        email, 
+        otp, 
+        type: verificationType,
+        verificationType: verificationType // Enviar ambos por si acaso
+      };
       const response = await this.request("/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify(body),
@@ -109,8 +116,12 @@ class AuthService {
       console.log("❌ Falló con body JSON, probando con query params...");
       
       // Fallback: probar con query parameters
-      const params = new URLSearchParams({ email, otp });
-      if (type) params.append('type', type);
+      const params = new URLSearchParams({ 
+        email, 
+        otp,
+        type: verificationType,
+        verificationType: verificationType
+      });
       return this.request(`/auth/verify-otp?${params}`, { method: "POST" });
     }
   }

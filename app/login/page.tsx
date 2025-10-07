@@ -203,11 +203,11 @@ export default function LoginPage() {
 
   return (
     <AuthGuard requireAuth={false}>
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+      <div className="min-h-screen bg-theme-primary text-theme-primary">
         {/* Header mejorado */}
         <header className="absolute top-6 left-6 right-6 z-10">
           <div className="flex items-center justify-between">
-            <Link href="/" className="group flex items-center gap-2 text-white/80 hover:text-white transition-all duration-300">
+            <Link href="/" className="group flex items-center gap-2 text-theme-secondary hover:text-theme-primary transition-all duration-300">
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Volver al inicio</span>
             </Link>
@@ -222,15 +222,15 @@ export default function LoginPage() {
         {/* Main content con layout mejorado */}
         <div className="min-h-screen flex items-center justify-center p-6 pt-24">
           <div className="w-full max-w-md">
-            <Card className="bg-gradient-to-b from-gray-800/80 to-gray-900/80 border-gray-700/50 backdrop-blur-sm shadow-2xl">
+            <Card className="card-theme border-theme backdrop-blur-sm shadow-2xl">
               <CardHeader className="text-center pb-2">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center mb-4 shadow-lg">
                   <Lock className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-white mb-2">
+                <CardTitle className="text-2xl font-bold text-theme-primary mb-2">
                   Bienvenido de nuevo
                 </CardTitle>
-                <p className="text-gray-400 text-sm">
+                <p className="text-theme-secondary text-sm">
                   Inicia sesión para acceder a tu cuenta
                 </p>
               </CardHeader>
@@ -270,7 +270,7 @@ export default function LoginPage() {
                 >
                   {/* Email Field mejorado */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white text-sm font-medium flex items-center gap-2">
+                    <Label htmlFor="email" className="text-theme-primary text-sm font-medium flex items-center gap-2">
                       <Mail className="w-4 h-4" />
                       Correo Electrónico
                     </Label>
@@ -282,7 +282,7 @@ export default function LoginPage() {
                         placeholder="tu@email.com"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        className={`bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 transition-colors pl-4 ${
+                        className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 transition-colors pl-4 ${
                           getFieldValidationState('email') === 'error' ? "border-red-500" : 
                           getFieldValidationState('email') === 'success' ? "border-green-500" : ""
                         }`}
@@ -310,7 +310,7 @@ export default function LoginPage() {
 
                   {/* Password Field mejorado */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-white text-sm font-medium flex items-center gap-2">
+                    <Label htmlFor="password" className="text-theme-primary text-sm font-medium flex items-center gap-2">
                       <Lock className="w-4 h-4" />
                       Contraseña
                     </Label>
@@ -322,7 +322,7 @@ export default function LoginPage() {
                         placeholder="Ingresa tu contraseña"
                         value={formData.password}
                         onChange={(e) => handleInputChange("password", e.target.value)}
-                        className={`bg-gray-700/50 border-gray-600 text-white placeholder:text-gray-400 focus:border-red-500 pr-20 transition-colors ${
+                        className={`bg-theme-secondary/30 border-theme text-theme-primary placeholder:text-theme-secondary focus:border-red-500 pr-20 transition-colors ${
                           getFieldValidationState('password') === 'error' ? "border-red-500" : 
                           getFieldValidationState('password') === 'success' ? "border-green-500" : ""
                         }`}
@@ -341,7 +341,7 @@ export default function LoginPage() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="text-gray-400 hover:text-white transition-colors p-1"
+                          className="text-theme-secondary hover:text-theme-primary transition-colors p-1"
                           disabled={isLoading}
                           aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
@@ -366,7 +366,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 text-lg transition-all duration-300 transform hover:scale-[1.02] mt-8 shadow-lg"
+                    className="w-full btn-primary-red disabled:opacity-50 disabled:cursor-not-allowed font-bold py-4 text-lg mt-8"
                   >
                     {isLoading ? (
                       <>
@@ -385,7 +385,7 @@ export default function LoginPage() {
                 <div className="text-center mt-6">
                   <Link
                     href="/register"
-                    className="text-gray-400 hover:text-white text-sm transition-colors"
+                    className="text-theme-secondary hover:text-theme-primary text-sm transition-colors"
                   >
                     ¿No tienes cuenta? <span className="text-red-400 hover:text-red-300 font-medium">Regístrate aquí</span>
                   </Link>
@@ -401,7 +401,7 @@ export default function LoginPage() {
               </div>
 
               <div className="text-center mt-4">
-                <span className="text-gray-300">¿No tienes una cuenta? </span>
+                <span className="text-theme-secondary">¿No tienes una cuenta? </span>
                 <Link
                   href="/register"
                   className="text-red-500 hover:text-red-400 font-medium"
@@ -409,79 +409,6 @@ export default function LoginPage() {
                   Regístrate aquí
                 </Link>
               </div>
-
-              {/* Credenciales de demostración */}
-              <div className="mt-6 p-4 bg-gray-700 rounded">
-                <h3 className="text-white font-medium mb-3 text-center">🎭 Credenciales Demo</h3>
-                <div className="space-y-2 text-xs text-gray-300">
-                  <div className="flex justify-between items-center p-2 bg-gray-600 rounded">
-                    <span><strong>Administrador:</strong></span>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setFormData({ email: "admin@fitzone.com", password: "admin123" })
-                        setErrors({})
-                      }}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      admin@fitzone.com / admin123
-                    </button>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-600 rounded">
-                    <span><strong>Recepcionista:</strong></span>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setFormData({ email: "recepcion@fitzone.com", password: "recep123" })
-                        setErrors({})
-                      }}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      recepcion@fitzone.com / recep123
-                    </button>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-600 rounded">
-                    <span><strong>Instructor:</strong></span>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setFormData({ email: "instructor@fitzone.com", password: "inst123" })
-                        setErrors({})
-                      }}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      instructor@fitzone.com / inst123
-                    </button>
-                  </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-600 rounded">
-                    <span><strong>Cliente:</strong></span>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setFormData({ email: "demo@fitzone.com", password: "123456" })
-                        setErrors({})
-                      }}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      demo@fitzone.com / 123456
-                    </button>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">
-                  Haz clic en cualquier credencial para autocompletarlas
-                </p>
-              </div>
-
-              {/* Información de debug (solo en desarrollo) */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="mt-6 p-3 bg-gray-700 rounded text-xs text-gray-300">
-                  <p>🔧 Modo desarrollo</p>
-                  <p>Backend: {typeof window !== 'undefined' ? 
-                    window.location.hostname === 'localhost' ? 
-                    'http://localhost:8080' : 'https://desplieguefitzone.onrender.com' : 
-                    'Verificando...'}</p>
-                </div>
-              )}
               </CardContent>
             </Card>
           </div>

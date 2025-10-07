@@ -146,13 +146,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         )
 
         // Crear objeto de usuario básico con los datos disponibles
-        const userData: User = {
-          id: response.data?.id || Date.now().toString(),
+        const userData: any = {
+          id: response.data?.idUser?.toString() || response.data?.id?.toString() || Date.now().toString(),
+          idUser: response.data?.idUser || response.data?.id || 0, // ⚠️ IMPORTANTE: Agregar idUser
           email: email,
           name: response.data?.name || response.data?.firstName || "Usuario",
           membershipType: response.membershipStatus || null,
-          role: response.data?.role || UserRole.MEMBER,
-          avatar: response.data?.avatar || "/avatar-placeholder.jpg"
+          role: response.data?.role || response.data?.userRole || UserRole.MEMBER,
+          userRole: response.data?.role || response.data?.userRole || UserRole.MEMBER, // ⚠️ Agregar userRole también
+          avatar: response.data?.avatar || "/avatar-placeholder.jpg",
+          isActive: response.data?.isActive !== undefined ? response.data.isActive : true,
+          createdAt: response.data?.createdAt || new Date().toISOString(),
+          updatedAt: response.data?.updatedAt || new Date().toISOString(),
         }
 
         // Si es un trabajador, agregar el perfil de trabajador
@@ -161,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: response.data?.workerProfile?.id || `worker-${userData.id}`,
             userId: parseInt(userData.id),
             role: userData.role,
-            permissions: DEFAULT_PERMISSIONS[userData.role] || [],
+            permissions: DEFAULT_PERMISSIONS[userData.role as UserRole] || [],
             isActive: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

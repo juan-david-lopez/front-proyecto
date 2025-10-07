@@ -309,10 +309,10 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando información del plan...</p>
+          <p className="text-theme-secondary">Cargando información del plan...</p>
         </div>
       </div>
     )
@@ -320,7 +320,7 @@ export default function CheckoutPage() {
 
   if (!membershipPlan) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">Plan no encontrado</p>
           <Button onClick={() => window.location.href = '/membresias'} className="bg-red-600 hover:bg-red-700">
@@ -332,9 +332,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+    <div className="min-h-screen bg-theme-primary text-theme-primary">
       {/* Header */}
-      <header className="border-b border-gray-800/50 p-4 bg-black/50 backdrop-blur-sm">
+      <header className="border-b border-theme p-4 bg-theme-primary/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/membresias" className="flex items-center space-x-2 hover:text-red-400 transition-colors" aria-label="Volver a planes">
             <ArrowLeft className="w-5 h-5" />
@@ -359,15 +359,15 @@ export default function CheckoutPage() {
 
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Card Information */}
-              <section className="bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-semibold mb-6 flex items-center">
+              <section className="card-theme p-6 rounded-lg">
+                <h2 className="text-xl font-semibold mb-6 flex items-center text-theme-primary">
                   <CreditCard className="w-5 h-5 mr-2" />
                   Datos de tarjeta
                 </h2>
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="cardNumber" className="text-gray-300">
+                    <Label htmlFor="cardNumber" className="text-theme-secondary">
                       Número de tarjeta
                     </Label>
                     <Input
@@ -376,7 +376,7 @@ export default function CheckoutPage() {
                       placeholder="1234 5678 9012 3456"
                       value={formData.cardNumber}
                       onChange={(e) => handleInputChange("cardNumber", formatCardNumber(e.target.value))}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
+                      className="bg-theme-secondary/20 border-theme text-theme-primary mt-2"
                       maxLength={19}
                       aria-describedby={errors.cardNumber ? "cardNumber-error" : undefined}
                       aria-invalid={!!errors.cardNumber}
@@ -583,7 +583,7 @@ export default function CheckoutPage() {
                 <Button
                   type="submit"
                   disabled={processing || !membershipPlan}
-                  className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                  className="w-full btn-primary-red font-bold py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label={membershipPlan ? `Pagar ${formatPrice(membershipPlan.monthlyPrice)} por plan ${getDisplayName(membershipPlan.name)}` : "Procesar pago"}
                 >
                   {processing ? (

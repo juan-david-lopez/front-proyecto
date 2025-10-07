@@ -90,9 +90,22 @@ export default function MembresíasPage() {
     return `$${price.toLocaleString("es-CO")}`
   }
 
+  const getPlanDisplayName = (membershipTypeName: MembershipTypeName) => {
+    switch (membershipTypeName) {
+      case MembershipTypeName.BASIC:
+        return "Plan Básico"
+      case MembershipTypeName.PREMIUM:
+        return "Plan Premium"
+      case MembershipTypeName.ELITE:
+        return "Plan Elite"
+      default:
+        return membershipTypeName
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-red-500" />
         <span className="ml-2">Cargando planes...</span>
       </div>
@@ -101,7 +114,7 @@ export default function MembresíasPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-500 mb-4">{error}</p>
           <Button onClick={loadMembershipTypes} className="bg-red-600 hover:bg-red-700">
@@ -113,12 +126,12 @@ export default function MembresíasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
-      <header className="px-6 py-6 bg-black/50 backdrop-blur-sm border-b border-gray-800">
+    <div className="min-h-screen bg-theme-primary text-theme-primary">
+      <header className="px-6 py-6 bg-theme-primary/50 backdrop-blur-sm border-b border-theme">
         <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-white hover:text-red-500 transition-all duration-300 hover:translate-x-1"
+            className="inline-flex items-center gap-2 text-theme-primary hover:text-red-500 transition-all duration-300 hover:translate-x-1"
           >
             <ArrowLeft size={20} />
             <span className="font-medium">Volver al inicio</span>
@@ -130,7 +143,7 @@ export default function MembresíasPage() {
               onClick={loadMembershipTypes}
               variant="outline"
               size="sm"
-              className="border-gray-600 text-gray-300 hover:text-white hover:border-red-500"
+              className="border-theme text-theme-secondary hover:text-theme-primary hover:border-red-500"
               disabled={loading}
             >
               {loading ? (
@@ -150,15 +163,15 @@ export default function MembresíasPage() {
             <Zap className="w-5 h-5 text-red-400" />
             <span className="text-red-400 font-medium">Planes exclusivos</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-theme-primary via-theme-secondary to-theme-secondary bg-clip-text text-transparent">
             Planes de Membresía
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed mb-8">
+          <p className="text-xl text-theme-secondary max-w-2xl mx-auto leading-relaxed mb-8">
             Transforma tu cuerpo y mente con nuestros planes diseñados para cada etapa de tu journey fitness
           </p>
           
           {/* Información adicional */}
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400">
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-theme-secondary">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-green-400" />
               <span>Sin permanencia</span>
@@ -189,8 +202,8 @@ export default function MembresíasPage() {
               key={membershipType.idMembershipType} 
               className={`relative border-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
                 index === 1 
-                  ? 'bg-gradient-to-br from-red-900/20 to-orange-900/20 border-red-500/50 transform scale-105' 
-                  : 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 hover:border-red-500/30'
+                  ? 'card-theme border-red-500/50 transform scale-105' 
+                  : 'card-theme border-theme hover:border-red-500/30'
               }`}
             >
               {index === 1 && (
@@ -215,39 +228,39 @@ export default function MembresíasPage() {
                   </div>
                   
                   <h3 className={`text-3xl font-bold mb-2 ${
-                    index === 1 ? 'text-red-400' : 'text-white'
+                    index === 1 ? 'text-red-400' : 'text-theme-primary'
                   }`}>
-                    {membershipType.description}
+                    {getPlanDisplayName(membershipType.name)}
                   </h3>
                   
-                  <div className="text-4xl font-bold mb-6 text-white">
-                    <span className={index === 1 ? 'text-red-400' : 'text-white'}>
+                  <div className="text-4xl font-bold mb-6 text-theme-primary">
+                    <span className={index === 1 ? 'text-red-400' : 'text-theme-primary'}>
                       ${membershipType.monthlyPrice.toLocaleString("es-CO")}
                     </span>
-                    <span className="text-lg font-normal text-gray-400">/mes</span>
+                    <span className="text-lg font-normal text-theme-secondary">/mes</span>
                   </div>
                 </div>
                 
                 <ul className="space-y-4 mb-8 flex-1" role="list">
                   {membershipType.name === MembershipTypeName.BASIC && (
                     <>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Acceso al área de pesas</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>2 horas por día de entrenamiento</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Máquinas cardiovasculares</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Vestuarios y duchas</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Solo puede estar en una sucursal</span>
                       </li>
@@ -255,23 +268,23 @@ export default function MembresíasPage() {
                   )}
                   {membershipType.name === MembershipTypeName.PREMIUM && (
                     <>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Todo lo del plan básico</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Acceso 24/7</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Entrenador personal (2 sesiones/mes)</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Evaluación nutricional</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Invitaciones para amigos (1/mes)</span>
                       </li>
@@ -279,27 +292,27 @@ export default function MembresíasPage() {
                   )}
                   {membershipType.name === MembershipTypeName.ELITE && (
                     <>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Todo lo del plan Premium</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Puede ingresar a cualquier sucursal</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Entrenador personal (4 sesiones/mes)</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Plan nutricional personalizado</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Invitaciones para amigos (3/mes)</span>
                       </li>
-                      <li className="flex items-center gap-3 text-gray-300">
+                      <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span>Nutricionista incluido</span>
                       </li>
@@ -310,7 +323,7 @@ export default function MembresíasPage() {
                   onClick={() => setSelectedPlan(membershipType)}
                   className={`w-full py-4 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
                     index === 1 
-                      ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-red-500/25' 
+                      ? 'btn-primary-red' 
                       : 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white'
                   }`}
                 >

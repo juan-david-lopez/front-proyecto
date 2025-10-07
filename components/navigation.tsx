@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { MobileMenu } from "@/components/mobile-menu"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useAuth } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
 import { LogOut, User, Settings, Users, BarChart3, ArrowLeft, ChevronDown, Bell, Search } from "lucide-react"
@@ -23,7 +24,7 @@ export function Navigation() {
       </a>
       
       <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-black/90 backdrop-blur-md border-b border-gray-800/50 transition-all duration-300"
+        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-theme-primary/90 backdrop-blur-md border-b border-theme transition-all duration-300"
         role="navigation"
         aria-label="Navegación principal"
       >
@@ -52,58 +53,58 @@ export function Navigation() {
         {user ? (
           // Navegación para usuarios autenticados con mejor diseño
           <>
-            {user.role === 'CLIENT' && (
+            {user.role === 'MEMBER' && (
               <>
-                <Link href="/dashboard" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+                <Link href="/dashboard" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span>Dashboard</span>
                 </Link>
-                <Link href="/membresias" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+                <Link href="/membresias" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                   <Users className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span>Membresías</span>
                 </Link>
-                <Link href="/reservas" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+                <Link href="/reservas" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                   <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                   <span>Reservas</span>
                 </Link>
               </>
             )}
             {(user.role === 'ADMIN' || user.role === 'RECEPTIONIST') && (
-              <Link href="/recepcion" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+              <Link href="/recepcion" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                 <Users className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>Recepción</span>
               </Link>
             )}
             {(user.role === 'ADMIN' || user.role === 'INSTRUCTOR') && (
-              <Link href="/instructor" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+              <Link href="/instructor" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                 <User className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>Instructor</span>
               </Link>
             )}
             {user.role === 'ADMIN' && (
-              <Link href="/admin" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200 flex items-center gap-2">
+              <Link href="/admin" className="group px-4 py-2 rounded-lg text-theme-primary hover:text-red-400 hover:bg-theme-secondary/20 transition-all duration-200 flex items-center gap-2">
                 <Settings className="h-4 w-4 group-hover:scale-110 transition-transform" />
                 <span>Administración</span>
               </Link>
             )}
           </>
         ) : (
-          // Navegación para usuarios no autenticados con mejor diseño
+          // Navegación para usuarios no autenticados
           <>
-            <Link href="/membresias" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200">
-              <span className="group-hover:scale-105 transition-transform inline-block">Membresías</span>
+            <Link href="/membresias" className="nav-link">
+              <span>Membresías</span>
             </Link>
-            <Link href="/reservas" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200">
-              <span className="group-hover:scale-105 transition-transform inline-block">Reservas</span>
+            <Link href="/reservas" className="nav-link">
+              <span>Reservas</span>
             </Link>
-            <Link href="/#clases" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200">
-              <span className="group-hover:scale-105 transition-transform inline-block">Clases</span>
+            <Link href="/#clases" className="nav-link">
+              <span>Clases</span>
             </Link>
-            <Link href="/#instalaciones" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200">
-              <span className="group-hover:scale-105 transition-transform inline-block">Instalaciones</span>
+            <Link href="/#instalaciones" className="nav-link">
+              <span>Instalaciones</span>
             </Link>
-            <Link href="/contacto" className="group px-4 py-2 rounded-lg text-white hover:text-red-400 hover:bg-gray-800/50 transition-all duration-200">
-              <span className="group-hover:scale-105 transition-transform inline-block">Contacto</span>
+            <Link href="/contacto" className="nav-link">
+              <span>Contacto</span>
             </Link>
           </>
         )}
@@ -115,19 +116,19 @@ export function Navigation() {
           // Usuario autenticado con mejor diseño
           <div className="flex items-center gap-4">
             {/* Info del usuario mejorada */}
-            <div className="flex items-center gap-3 px-3 py-2 bg-gray-800/30 rounded-lg border border-gray-700/50">
+            <div className="flex items-center gap-3 px-3 py-2 bg-theme-secondary/30 rounded-lg border border-theme">
               <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                 {user.name?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className="flex flex-col">
-                <span className="text-white text-sm font-medium">{user.name}</span>
+                <span className="text-theme-primary text-sm font-medium">{user.name}</span>
                 <Badge 
                   variant="secondary" 
                   className={`text-xs px-2 py-0.5 ${
                     user.role === 'ADMIN' ? 'bg-purple-900/50 text-purple-300 border-purple-500/30' :
                     user.role === 'RECEPTIONIST' ? 'bg-blue-900/50 text-blue-300 border-blue-500/30' :
                     user.role === 'INSTRUCTOR' ? 'bg-green-900/50 text-green-300 border-green-500/30' :
-                    'bg-gray-900/50 text-gray-300 border-gray-500/30'
+                    'bg-theme-secondary text-theme-secondary border-theme'
                   }`}
                 >
                   {user.role === 'ADMIN' ? 'Admin' : 
@@ -143,7 +144,7 @@ export function Navigation() {
                 variant="ghost"
                 size="sm"
                 onClick={goBack}
-                className="text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
+                className="text-theme-secondary hover:text-theme-primary hover:bg-theme-secondary/20 transition-all duration-200"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Volver
@@ -162,21 +163,23 @@ export function Navigation() {
         ) : (
           // Usuario no autenticado con mejor diseño
           <>
+            <ThemeToggle />
             <Link href="/login">
               <Button 
                 variant="ghost" 
-                className="text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-200 font-medium"
+                className="text-theme-secondary hover:text-theme-primary hover:bg-theme-secondary/20 transition-all duration-300 font-medium hover:scale-105 hover:shadow-lg"
               >
                 Iniciar sesión
               </Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-medium shadow-lg transition-all duration-200 hover:shadow-red-500/25 hover:scale-105">
+              <Button className="btn-primary-red">
                 Únete ahora
               </Button>
             </Link>
           </>
         )}
+        <ThemeToggle />
       </div>
 
       {/* Mobile Menu */}

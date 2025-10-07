@@ -32,21 +32,21 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
         variant="ghost"
         size="icon"
         onClick={onToggle}
-        className="md:hidden text-white hover:bg-gray-800"
+        className="md:hidden text-theme-primary hover:bg-theme-secondary/20"
         aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
       >
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 bg-black border-t border-gray-800 md:hidden z-50">
+        <div className="absolute top-full left-0 right-0 bg-theme-primary border-t border-theme md:hidden z-50">
           <nav className="flex flex-col p-4 space-y-4">
             {user ? (
               // Usuario autenticado
               <>
                 {/* Información del usuario */}
-                <div className="pb-2 border-b border-gray-800">
-                  <div className="text-white text-sm mb-1">{user.name}</div>
+                <div className="pb-2 border-b border-theme">
+                  <div className="text-theme-primary text-sm mb-1">{user.name}</div>
                   <Badge variant="secondary" className="text-xs">
                     {user.role === 'ADMIN' ? 'Administrador' : 
                      user.role === 'RECEPTIONIST' ? 'Recepcionista' : 
@@ -58,7 +58,7 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                 {user.role === 'RECEPTIONIST' && (
                   <Link
                     href="/recepcion"
-                    className="text-white hover:text-red-500 transition-colors py-2 flex items-center gap-2"
+                    className="text-theme-primary hover:text-red-500 transition-colors py-2 flex items-center gap-2"
                     onClick={onToggle}
                   >
                     <Users className="h-4 w-4" />
@@ -68,7 +68,7 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                 {user.role === 'INSTRUCTOR' && (
                   <Link
                     href="/instructor"
-                    className="text-white hover:text-red-500 transition-colors py-2 flex items-center gap-2"
+                    className="text-theme-primary hover:text-red-500 transition-colors py-2 flex items-center gap-2"
                     onClick={onToggle}
                   >
                     <User className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                 {user.role === 'ADMIN' && (
                   <Link
                     href="/admin"
-                    className="text-white hover:text-red-500 transition-colors py-2 flex items-center gap-2"
+                    className="text-theme-primary hover:text-red-500 transition-colors py-2 flex items-center gap-2"
                     onClick={onToggle}
                   >
                     <Settings className="h-4 w-4" />
@@ -87,10 +87,10 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
                 )}
 
                 {/* Acciones del usuario */}
-                <div className="pt-4 border-t border-gray-800 space-y-2">
+                <div className="pt-4 border-t border-theme space-y-2">
                   <Button
                     variant="outline"
-                    className="w-full border-gray-400 text-gray-300 hover:bg-gray-600 hover:text-white"
+                    className="w-full border-theme text-theme-secondary hover:bg-theme-secondary/20 hover:text-theme-primary"
                     onClick={handleGoBack}
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
@@ -111,47 +111,47 @@ export function MobileMenu({ isOpen, onToggle }: MobileMenuProps) {
               <>
                 <Link
                   href="/membresias"
-                  className="text-white hover:text-red-500 transition-colors py-2"
+                  className="nav-link"
                   onClick={onToggle}
                 >
                   Membresías
                 </Link>
                 <Link
                   href="/reservas"
-                  className="text-white hover:text-red-500 transition-colors py-2"
+                  className="nav-link"
                   onClick={onToggle}
                 >
                   Reservas
                 </Link>
                 <Link
                   href="/clases"
-                  className="text-white hover:text-red-500 transition-colors py-2"
+                  className="nav-link"
                   onClick={onToggle}
                 >
                   Clases
                 </Link>
                 <Link
                   href="/instalaciones"
-                  className="text-white hover:text-red-500 transition-colors py-2"
+                  className="nav-link"
                   onClick={onToggle}
                 >
                   Instalaciones
                 </Link>
                 <Link
                   href="/contacto"
-                  className="text-white hover:text-red-500 transition-colors py-2"
+                  className="nav-link"
                   onClick={onToggle}
                 >
                   Contacto
                 </Link>
-                <div className="pt-4 border-t border-gray-800 space-y-2">
+                <div className="pt-4 border-t border-theme space-y-2">
                   <Link href="/login" onClick={onToggle}>
-                    <Button variant="outline" className="w-full border-gray-600 text-white hover:bg-gray-800">
+                    <Button variant="outline" className="w-full border-theme text-theme-primary hover:bg-theme-secondary/20 hover:border-theme transition-all duration-300 hover:scale-105 hover:shadow-lg">
                       Iniciar sesión
                     </Button>
                   </Link>
                   <Link href="/register" onClick={onToggle}>
-                    <Button className="w-full bg-red-600 hover:bg-red-700">
+                    <Button className="btn-primary-red w-full">
                       Registrarse
                     </Button>
                   </Link>

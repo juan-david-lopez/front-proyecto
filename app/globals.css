@@ -3,43 +3,117 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+/* ========================================
+   TEMA OSCURO (Por defecto)
+   ======================================== */
+:root,
+.dark,
+.dark-theme {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ffffff;
+  --muted: #262626;
+  --muted-foreground: #b3b3b3;
+  --accent: #dc2626;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #333333;
+  --input: #1a1a1a;
+  --ring: #dc2626;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-
-  /* FitZone Design System - Accesibilidad WCAG AA compliant */
   
+  /* FitZone Brand Colors - Tema Oscuro */
+  --fitzone-bg-primary: #000000;
+  --fitzone-bg-secondary: #0a0a0a;
+  --fitzone-bg-tertiary: #1a1a1a;
+  --fitzone-text-primary: #ffffff;
+  --fitzone-text-secondary: #b3b3b3;
+  --fitzone-text-muted: #808080;
+  --fitzone-red-primary: #ef4444;
+  --fitzone-red-secondary: #f87171;
+  --fitzone-red-hover: #dc2626;
+  --fitzone-border-primary: #333333;
+  --fitzone-border-secondary: #262626;
+  
+  /* Colores de estado para modo oscuro */
+  --fitzone-success: #22c55e;
+  --fitzone-warning: #f59e0b;
+  --fitzone-error: #ef4444;
+  --fitzone-info: #3b82f6;
+  
+  color-scheme: dark;
+}
+
+/* ========================================
+   TEMA CLARO
+   ======================================== */
+.light,
+.light-theme {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #f8f8f8;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f0f0f0;
+  --muted-foreground: #666666;
+  --accent: #dc2626;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e0e0e0;
+  --input: #f5f5f5;
+  --ring: #dc2626;
+  --radius: 0.625rem;
+  
+  /* FitZone Brand Colors - Tema Claro */
+  --fitzone-bg-primary: #ffffff;
+  --fitzone-bg-secondary: #fafafa;
+  --fitzone-bg-tertiary: #f5f5f5;
+  --fitzone-text-primary: #0a0a0a;
+  --fitzone-text-secondary: #4a4a4a;
+  --fitzone-text-muted: #737373;
+  --fitzone-red-primary: #dc2626;
+  --fitzone-red-secondary: #ef4444;
+  --fitzone-red-hover: #b91c1c;
+  --fitzone-border-primary: #e0e0e0;
+  --fitzone-border-secondary: #f0f0f0;
+  
+  /* Colores de estado para modo claro */
+  --fitzone-success: #16a34a;
+  --fitzone-warning: #d97706;
+  --fitzone-error: #dc2626;
+  --fitzone-info: #2563eb;
+  
+  color-scheme: light;
+}
+
+/* Transiciones suaves para cambio de tema */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* ========================================
+   VARIABLES GLOBALES - FitZone Design System
+   Accesibilidad WCAG AA compliant
+   ======================================== */
+:root {
   /* Colores principales con contraste 4.5:1 mínimo */
   --fitzone-primary: 220 38% 48%;    /* Azul accesible */
   --fitzone-primary-dark: 220 45% 35%;
@@ -148,6 +222,131 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+}
+
+/* ========================================
+   CLASES DE UTILIDAD PARA TEMAS
+   ======================================== */
+
+/* Fondos adaptativos */
+.bg-theme-primary {
+  background-color: var(--fitzone-bg-primary);
+}
+
+.bg-theme-secondary {
+  background-color: var(--fitzone-bg-secondary);
+}
+
+.bg-theme-tertiary {
+  background-color: var(--fitzone-bg-tertiary);
+}
+
+/* Textos adaptativos */
+.text-theme-primary {
+  color: var(--fitzone-text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--fitzone-text-secondary);
+}
+
+.text-theme-muted {
+  color: var(--fitzone-text-muted);
+}
+
+/* Bordes adaptativos */
+.border-theme {
+  border-color: var(--fitzone-border-primary);
+}
+
+.border-theme-secondary {
+  border-color: var(--fitzone-border-secondary);
+}
+
+/* Cards adaptativos */
+.card-theme {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--fitzone-border-primary);
+}
+
+/* Botones adaptativos */
+.btn-theme-primary {
+  background-color: var(--fitzone-red-primary);
+  color: #ffffff;
+}
+
+.btn-theme-primary:hover {
+  background-color: var(--fitzone-red-hover);
+}
+
+.btn-theme-secondary {
+  background-color: var(--fitzone-bg-secondary);
+  color: var(--fitzone-text-primary);
+  border: 1px solid var(--fitzone-border-primary);
+}
+
+.btn-theme-secondary:hover {
+  background-color: var(--fitzone-bg-tertiary);
+}
+
+/* Estados adaptativos */
+.success-theme {
+  color: var(--fitzone-success);
+}
+
+.warning-theme {
+  color: var(--fitzone-warning);
+}
+
+.error-theme {
+  color: var(--fitzone-error);
+}
+
+.info-theme {
+  color: var(--fitzone-info);
+}
+
+/* Hover states adaptativos */
+.hover-theme:hover {
+  background-color: var(--fitzone-bg-tertiary);
+}
+
+/* Input adaptativos */
+.input-theme {
+  background-color: var(--input);
+  color: var(--foreground);
+  border: 1px solid var(--fitzone-border-primary);
+}
+
+.input-theme:focus {
+  border-color: var(--fitzone-red-primary);
+  outline: 2px solid var(--fitzone-red-primary);
+  outline-offset: 2px;
+}
+
+/* Aplicar tema a body y html */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Scrollbar adaptativo al tema */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fitzone-red-primary);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fitzone-red-hover);
 }
 
 /* Added font size classes for accessibility */
@@ -683,3 +882,186 @@ html.text-xl h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
 .custom-scrollbar {
   scroll-behavior: smooth;
 }
+
+/* ========================================
+   GRADIENTES ADAPTATIVOS PARA TEMAS
+   ======================================== */
+
+/* Gradiente para títulos principales - adapta el color según el tema */
+.gradient-title {
+  background: linear-gradient(to right, var(--fitzone-text-primary), var(--fitzone-red-primary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+}
+
+/* Gradiente para subtítulos - más sutil */
+.gradient-subtitle {
+  background: linear-gradient(to right, var(--fitzone-red-primary), var(--fitzone-text-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Clases específicas para modo oscuro y claro */
+.dark .text-gradient-hero {
+  background: linear-gradient(to right, #ffffff, #f87171, #fb923c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light .text-gradient-hero,
+.light-theme .text-gradient-hero {
+  background: linear-gradient(to right, #0a0a0a, #dc2626, #ea580c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradiente rojo para "Tu Vida" - adaptativo */
+.dark .text-gradient-accent {
+  background: linear-gradient(to right, #ef4444, #dc2626, #fb923c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light .text-gradient-accent,
+.light-theme .text-gradient-accent {
+  background: linear-gradient(to right, #b91c1c, #991b1b, #c2410c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Fondos con gradiente adaptativos */
+.dark .bg-gradient-banner {
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.15), rgba(251, 146, 60, 0.15));
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.light .bg-gradient-banner,
+.light-theme .bg-gradient-banner {
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.1), rgba(234, 88, 12, 0.1));
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+/* Texto para banners - garantiza buen contraste */
+.dark .text-banner {
+  color: #fca5a5;
+}
+
+.light .text-banner,
+.light-theme .text-banner {
+  color: #991b1b;
+}
+
+/* Badge/Tag adaptativo */
+.badge-theme {
+  background-color: var(--fitzone-bg-tertiary);
+  color: var(--fitzone-text-primary);
+  border: 1px solid var(--fitzone-border-primary);
+}
+
+.dark .badge-theme-accent {
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.2), rgba(251, 146, 60, 0.2));
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.light .badge-theme-accent,
+.light-theme .badge-theme-accent {
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.15), rgba(234, 88, 12, 0.15));
+  color: #991b1b;
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+/* ========================================
+   COMPONENTES REUTILIZABLES
+   ======================================== */
+
+/* Link de navegación con hover rojo */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  color: var(--fitzone-text-primary);
+  transition: all 300ms ease;
+}
+
+.nav-link:hover {
+  color: #ef4444;
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+/* Botón principal rojo con gradiente */
+.btn-primary-red {
+  background: linear-gradient(to right, #dc2626, #b91c1c);
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.3);
+  transition: all 300ms ease;
+}
+
+.btn-primary-red:hover {
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.5);
+  transform: scale(1.1) translateY(-2px);
+}
+
+/* Badge/Banner destacado */
+.badge-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(8px);
+}
+
+.dark .badge-highlight {
+  background: linear-gradient(to right, rgba(239, 68, 68, 0.15), rgba(251, 146, 60, 0.15));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.light .badge-highlight,
+.light-theme .badge-highlight {
+  background: linear-gradient(to right, rgba(220, 38, 38, 0.1), rgba(234, 88, 12, 0.1));
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Card con hover animado */
+.card-hover {
+  background-color: var(--fitzone-bg-secondary);
+  border: 1px solid var(--fitzone-border-primary);
+  transition: all 300ms ease;
+}
+
+.card-hover:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+/* Texto con gradiente rojo */
+.text-red-gradient {
+  background: linear-gradient(to right, #ef4444, #fb923c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light .text-red-gradient,
+.light-theme .text-red-gradient {
+  background: linear-gradient(to right, #b91c1c, #c2410c);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+

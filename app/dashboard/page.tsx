@@ -42,17 +42,40 @@ export default function DashboardPage() {
   try {
     setLoading(true)
     const userData = userService.getCurrentUser()
-    if (userData) {
-      setUserName(userData.name || userData.email || "Usuario")
-      const userIdNumber = Number(userData.idUser || 0)
-      setUserId(userIdNumber)
-      if (!isNaN(userIdNumber)) {
-        const status = await membershipService.checkMembership(userIdNumber)
-        setMembershipStatus(status)
-      }
+    
+    console.log('👤 [Dashboard] User data from storage:', userData)
+    
+    if (!userData) {
+      console.warn('⚠️ [Dashboard] No user data found in storage')
+      setMembershipStatus({
+        isActive: false,
+        status: "INACTIVE",
+        membershipType: MembershipTypeName.NONE,
+      })
+      return
     }
+
+    setUserName(userData.name || userData.email || "Usuario")
+    
+    const userIdNumber = Number(userData.idUser)
+    console.log('🆔 [Dashboard] User ID:', userIdNumber)
+    
+    if (!userIdNumber || isNaN(userIdNumber) || userIdNumber === 0) {
+      console.error('❌ [Dashboard] Invalid user ID:', userData.idUser)
+      setMembershipStatus({
+        isActive: false,
+        status: "INACTIVE",
+        membershipType: MembershipTypeName.NONE,
+      })
+      return
+    }
+    
+    setUserId(userIdNumber)
+    const status = await membershipService.checkMembership(userIdNumber)
+    setMembershipStatus(status)
+    
   } catch (error) {
-    console.error('Error loading user data:', error)
+    console.error('❌ [Dashboard] Error loading user data:', error)
     setMembershipStatus({
       isActive: false,
       status: "INACTIVE",
@@ -73,10 +96,10 @@ export default function DashboardPage() {
       return {
         title: "Cargando estado...",
         description: "Verificando información de membresía",
-        color: "bg-gray-600",
+        color: "bg-theme-secondary",
         icon: CreditCard,
         badge: "Cargando",
-        badgeColor: "bg-gray-100 text-gray-800",
+        badgeColor: "bg-theme-secondary text-theme-primary",
         expiryDate: null
       }
     }
@@ -123,7 +146,7 @@ export default function DashboardPage() {
       return {
         title: "Sin Membresía Activa",
         description: "Adquiere una membresía para acceder a todos los beneficios",
-        color: "bg-gray-600",
+        color: "bg-theme-secondary",
         icon: CreditCard,
         badge: "Inactiva",
         badgeColor: "bg-gray-100 text-gray-800",
@@ -137,18 +160,18 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-red-500" />
-        <span className="ml-2">Cargando dashboard...</span>
+        <span className="ml-2 text-theme-primary">Cargando dashboard...</span>
       </div>
     )
   }
 
   return (
     <AuthGuard requireAuth={true}>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-theme-primary text-theme-primary">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-background border-b border-border shadow-sm">
+        <header className="flex items-center justify-between px-6 py-4 bg-theme-primary border-b border-theme shadow-sm">
           <div className="flex items-center space-x-4">
             <div
               className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center shadow-lg"
@@ -158,8 +181,8 @@ export default function DashboardPage() {
               <span className="text-white font-bold text-lg">{userName.charAt(0).toUpperCase()}</span>
             </div>
             <div>
-              <h1 className="text-xl font-semibold">¡Hola, {userName}!</h1>
-              <p className="text-sm text-muted-foreground">Bienvenido a tu dashboard</p>
+              <h1 className="text-xl font-semibold text-theme-primary">¡Hola, {userName}!</h1>
+              <p className="text-sm text-theme-secondary">Bienvenido a tu dashboard</p>
             </div>
           </div>
 
@@ -184,7 +207,7 @@ export default function DashboardPage() {
             <h2 id="membership-heading" className="text-2xl font-bold text-red-500 mb-4">
               Estado de Membresía
             </h2>
-            <Card className="bg-card border-border shadow-sm">
+            <Card className="card-theme border-theme shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4">
@@ -197,10 +220,10 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-semibold text-card-foreground">{membershipInfo.title}</h3>
+                        <h3 className="text-xl font-semibold text-theme-primary">{membershipInfo.title}</h3>
                         <Badge className={membershipInfo.badgeColor}>{membershipInfo.badge}</Badge>
                       </div>
-                      <p className="text-muted-foreground mb-4">{membershipInfo.description}</p>
+                      <p className="text-theme-secondary mb-4">{membershipInfo.description}</p>
                       {(!membershipStatus || !membershipStatus.isActive) && (
                         <Link href="/membresias">
                           <Button className="bg-red-600 hover:bg-red-700 text-white">Adquirir Membresía</Button>
@@ -237,7 +260,7 @@ export default function DashboardPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
               <Card
-                className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer hover:shadow-md"
+                className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md"
                 role="gridcell"
               >
                 <CardContent className="p-6 text-center">
@@ -248,13 +271,13 @@ export default function DashboardPage() {
                   >
                     <User className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Mi Perfil</h3>
-                  <p className="text-muted-foreground text-sm">Configurar información personal</p>
+                  <h3 className="text-lg font-semibold text-theme-primary mb-2">Mi Perfil</h3>
+                  <p className="text-theme-secondary text-sm">Configurar información personal</p>
                 </CardContent>
               </Card>
 
               <Card
-                className="bg-card border-red-600 border-2 hover:bg-accent transition-all duration-200 cursor-pointer hover:shadow-md"
+                className="card-theme border-red-600 border-2 hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md"
                 role="gridcell"
               >
                 <CardContent className="p-6 text-center">
@@ -265,14 +288,14 @@ export default function DashboardPage() {
                   >
                     <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Estadísticas</h3>
-                  <p className="text-muted-foreground text-sm">Ver progreso y métricas</p>
+                  <h3 className="text-lg font-semibold text-theme-primary mb-2">Estadísticas</h3>
+                  <p className="text-theme-secondary text-sm">Ver progreso y métricas</p>
                 </CardContent>
               </Card>
 
               <Link href="/dashboard/pagos" className="block">
                 <Card
-                  className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer h-full hover:shadow-md"
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer h-full hover:shadow-md"
                   role="gridcell"
                 >
                   <CardContent className="p-6 text-center">
@@ -283,15 +306,15 @@ export default function DashboardPage() {
                     >
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Pagos</h3>
-                    <p className="text-muted-foreground text-sm">Historial y recibos</p>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Pagos</h3>
+                    <p className="text-theme-secondary text-sm">Historial y recibos</p>
                   </CardContent>
                 </Card>
               </Link>
 
               <Link href="/configuracion" className="block">
                 <Card
-                  className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer h-full hover:shadow-md"
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer h-full hover:shadow-md"
                   role="gridcell"
                 >
                   <CardContent className="p-6 text-center">
@@ -302,8 +325,8 @@ export default function DashboardPage() {
                     >
                       <Settings className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Configuración</h3>
-                    <p className="text-muted-foreground text-sm">Ajustes de la aplicación</p>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Configuración</h3>
+                    <p className="text-theme-secondary text-sm">Ajustes de la aplicación</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -317,16 +340,16 @@ export default function DashboardPage() {
                 <h2 id="stats-heading" className="text-2xl font-bold text-red-500">
                   Estadísticas de Hoy
                 </h2>
-                <p className="text-muted-foreground capitalize">{currentDate}</p>
+                <p className="text-theme-secondary capitalize">{currentDate}</p>
               </div>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-theme-secondary hover:text-theme-primary">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Ver Historial
               </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -338,8 +361,8 @@ export default function DashboardPage() {
                         <Calendar className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">2</div>
-                        <div className="text-muted-foreground text-sm">Entrenamientos</div>
+                        <div className="text-2xl font-bold text-theme-primary">2</div>
+                        <div className="text-theme-secondary text-sm">Entrenamientos</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+1</div>
@@ -347,7 +370,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -359,8 +382,8 @@ export default function DashboardPage() {
                         <Clock className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">1h 15m</div>
-                        <div className="text-muted-foreground text-sm">Tiempo Entrenado</div>
+                        <div className="text-2xl font-bold text-theme-primary">1h 15m</div>
+                        <div className="text-theme-secondary text-sm">Tiempo Entrenado</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+30m</div>
@@ -368,7 +391,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -380,8 +403,8 @@ export default function DashboardPage() {
                         <Flame className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">485</div>
-                        <div className="text-muted-foreground text-sm">Calorías Quemadas</div>
+                        <div className="text-2xl font-bold text-theme-primary">485</div>
+                        <div className="text-theme-secondary text-sm">Calorías Quemadas</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+165</div>
@@ -389,7 +412,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -401,8 +424,8 @@ export default function DashboardPage() {
                         <Target className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">75%</div>
-                        <div className="text-muted-foreground text-sm">Objetivo Diario</div>
+                        <div className="text-2xl font-bold text-theme-primary">75%</div>
+                        <div className="text-theme-secondary text-sm">Objetivo Diario</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+25%</div>
@@ -426,7 +449,7 @@ export default function DashboardPage() {
               Progreso Semanal
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-card border-border shadow-sm">
+              <Card className="card-theme border-theme shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="w-5 h-5 text-red-600" />
@@ -436,17 +459,17 @@ export default function DashboardPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Entrenamientos completados</span>
+                      <span className="text-sm text-theme-secondary">Entrenamientos completados</span>
                       <span className="font-semibold">8/10</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
+                    <div className="w-full bg-theme-secondary/20 rounded-full h-2">
                       <div className="bg-red-600 h-2 rounded-full" style={{ width: "80%" }}></div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm">
+              <Card className="card-theme border-theme shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Award className="w-5 h-5 text-yellow-600" />
@@ -461,7 +484,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <p className="font-medium text-sm">Semana Consistente</p>
-                        <p className="text-xs text-muted-foreground">5 días seguidos entrenando</p>
+                        <p className="text-xs text-theme-secondary">5 días seguidos entrenando</p>
                       </div>
                     </div>
                   </div>

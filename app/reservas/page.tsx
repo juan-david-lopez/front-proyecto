@@ -242,17 +242,17 @@ export default function ReservationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-gray-100">
+    <div className="min-h-screen bg-theme-primary">
       {/* Header Premium */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-theme-primary shadow-sm border-b border-theme">
         <div className="container mx-auto px-6 py-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
               <Calendar className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Sistema de Reservas FitZone</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-theme-primary">Sistema de Reservas FitZone</h1>
+              <p className="text-theme-secondary mt-1">
                 Reserva clases grupales, entrenamientos personales y espacios especializados
               </p>
             </div>
@@ -262,7 +262,7 @@ export default function ReservationsPage() {
 
       <div className="container mx-auto px-6 py-8 space-y-8">
         {/* Filtros Mejorados */}
-        <Card className="bg-gradient-to-r from-white to-green-50 border-green-200 shadow-lg">
+        <Card className="card-theme border-theme shadow-lg">
           <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">

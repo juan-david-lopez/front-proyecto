@@ -165,6 +165,16 @@ class MembershipService {
 
   async checkMembership(userId: number): Promise<MembershipStatusResponse> {
     try {
+      // Validar que el userId sea válido
+      if (!userId || isNaN(userId) || userId === 0) {
+        console.error("❌ [MembershipService] Invalid userId:", userId);
+        return {
+          isActive: false,
+          status: "INACTIVE",
+          membershipType: MembershipTypeName.NONE,
+        };
+      }
+
       const response = await this.request<ApiResponse<MembershipStatusResponse>>(`/memberships/status/${userId}`);
       return response.data ?? {
         isActive: false,
@@ -172,7 +182,7 @@ class MembershipService {
         membershipType: MembershipTypeName.NONE,
       };
     } catch (error) {
-      console.error("❌ Error al verificar membresía:", error);
+      console.error("❌ [MembershipService] Error al verificar membresía:", error);
       return {
         isActive: false,
         status: "INACTIVE",
