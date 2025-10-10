@@ -12,12 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Calendar, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { FitZoneLogo } from "@/components/fitzone-logo"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
 import { userService } from "@/services/userService"
 import authService from "@/services/authService"
 import { DocumentType, UserRole } from "@/types/user"
+import { locationService } from "@/services/locationService"
+import { Location } from "@/types/reservation"
 
 // Definir el tipo para el formulario
 interface FormData {
@@ -42,6 +44,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [locations, setLocations] = useState<Location[]>([])
+  const [loadingLocations, setLoadingLocations] = useState(true)
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -77,13 +81,24 @@ export default function RegisterPage() {
     "admin": UserRole.ADMIN
   }
 
-  // Mapeo de sedes a IDs (debes obtener estos IDs de tu backend)
-  const locationMap: { [key: string]: number } = {
-    "norte": 1,
-    "sur": 2,
-    "centro": 3,
-    "oriente": 4
-  }
+  // Cargar sedes al montar el componente
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        setLoadingLocations(true)
+        const fetchedLocations = await locationService.getAllLocations()
+        setLocations(fetchedLocations)
+        console.log('✅ Sedes cargadas:', fetchedLocations)
+      } catch (error) {
+        console.error('❌ Error cargando sedes:', error)
+        // Las sedes por defecto se cargan automáticamente en el servicio
+      } finally {
+        setLoadingLocations(false)
+      }
+    }
+    
+    loadLocations()
+  }, [])
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -175,6 +190,10 @@ export default function RegisterPage() {
       newErrors.birthDate = "Debes tener entre 16 y 100 años"
     }
 
+    if (!formData.mainLocationId) {
+      newErrors.mainLocationId = "Debes seleccionar tu sede principal"
+    }
+
     if (!formData.terms) {
       newErrors.terms = "Debes aceptar los términos y condiciones"
     }
@@ -236,7 +255,7 @@ export default function RegisterPage() {
         emergencyContactPhone: formData.emergencyContactPhone.trim(), // Campo obligatorio
         birthDate: formData.birthDate,
         medicalConditions: formData.medicalConditions.trim() || "",
-        mainLocationId: formData.mainLocationId ? locationMap[formData.mainLocationId] : undefined,
+        mainLocationId: Number(formData.mainLocationId), // Convertir a número (ya es el ID de la sede)
         role: roleMap[formData.role] || UserRole.MEMBER
       }
 
@@ -600,19 +619,34 @@ export default function RegisterPage() {
                 {/* Main Branch Field */}
                 <div className="space-y-2">
                   <Label htmlFor="mainLocationId" className="text-theme-primary text-sm">
-                    Sede Principal (Opcional)
+                    Sede Principal <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={formData.mainLocationId} onValueChange={handleSelectChange("mainLocationId")}>
+                  <Select 
+                    value={formData.mainLocationId} 
+                    onValueChange={handleSelectChange("mainLocationId")}
+                    required
+                    disabled={loadingLocations}
+                  >
                     <SelectTrigger className="bg-theme-secondary/30 border-theme text-theme-primary focus:border-red-500">
-                      <SelectValue placeholder="Selecciona una sede" />
+                      <SelectValue placeholder={loadingLocations ? "Cargando sedes..." : "Selecciona tu sede preferida"} />
                     </SelectTrigger>
                     <SelectContent className="bg-theme-secondary border-theme">
-                      <SelectItem value="norte">Sede Norte</SelectItem>
-                      <SelectItem value="sur">Sede Sur</SelectItem>
-                      <SelectItem value="centro">Sede Centro</SelectItem>
-                      <SelectItem value="oriente">Sede Oriente</SelectItem>
+                      {loadingLocations ? (
+                        <SelectItem value="loading" disabled>Cargando sedes...</SelectItem>
+                      ) : locations.length > 0 ? (
+                        locations.map((location) => (
+                          <SelectItem key={location.id} value={location.id.toString()}>
+                            {location.name} - {location.city}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-locations" disabled>No hay sedes disponibles</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
+                  {errors.mainLocationId && (
+                    <p className="text-red-500 text-xs mt-1">{errors.mainLocationId}</p>
+                  )}
                 </div>
 
                 {/* Role Field */}

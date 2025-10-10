@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { 
   User, BarChart3, CreditCard, Settings, Calendar, 
   Clock, Flame, LogOut, CheckCircle, TrendingUp, 
-  Target, Award, Bell, Activity, Loader2 
+  Target, Award, Bell, Activity, Loader2, RefreshCw 
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
@@ -19,14 +19,17 @@ import { userService } from "@/services/userService"
 import { ReservationWidget } from "@/components/reservation/reservation-widget"
 import { NotificationBell } from "@/components/reservation/notification-bell"
 import { MembershipNotificationBell } from "@/components/membership-notification-bell"
+import { useAuth } from "@/contexts/auth-context"
 
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { user: contextUser, refreshUser } = useAuth()
   const [userName, setUserName] = useState("Usuario")
   const [userId, setUserId] = useState<number | null>(null)
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [currentDate] = useState(new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
@@ -36,14 +39,26 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadUserData()
-  }, [])
+  }, [contextUser?.membershipType]) // Re-cargar cuando cambie el tipo de membresía en el contexto
 
  const loadUserData = async () => {
   try {
     setLoading(true)
+    
+    // 1. Primero, intentar refrescar el usuario desde el backend
+    console.log('🔄 [Dashboard] Refrescando usuario desde backend...')
+    try {
+      await refreshUser()
+      console.log('✅ [Dashboard] Usuario refrescado desde backend')
+    } catch (error) {
+      console.warn('⚠️ [Dashboard] Error al refrescar usuario, usando datos del localStorage:', error)
+    }
+    
+    // 2. Obtener datos actualizados (ya sea del backend o del localStorage)
     const userData = userService.getCurrentUser()
     
     console.log('👤 [Dashboard] User data from storage:', userData)
+    console.log('💳 [Dashboard] MembershipType from context:', contextUser?.membershipType)
     
     if (!userData) {
       console.warn('⚠️ [Dashboard] No user data found in storage')
@@ -57,11 +72,15 @@ export default function DashboardPage() {
 
     setUserName(userData.name || userData.email || "Usuario")
     
-    const userIdNumber = Number(userData.idUser)
-    console.log('🆔 [Dashboard] User ID:', userIdNumber)
+    // El objeto puede venir del contexto (User.id: string) o de localStorage (UserResponse.idUser: number)
+    // Intentar obtener el ID de ambas formas
+    const userIdString = (userData as any).id || userData.idUser?.toString()
+    const userIdNumber = Number(userIdString)
+    console.log('🆔 [Dashboard] User ID (string):', userIdString)
+    console.log('🆔 [Dashboard] User ID (number):', userIdNumber)
     
     if (!userIdNumber || isNaN(userIdNumber) || userIdNumber === 0) {
-      console.error('❌ [Dashboard] Invalid user ID:', userData.idUser)
+      console.error('❌ [Dashboard] Invalid user ID. userData:', userData)
       setMembershipStatus({
         isActive: false,
         status: "INACTIVE",
@@ -71,8 +90,37 @@ export default function DashboardPage() {
     }
     
     setUserId(userIdNumber)
-    const status = await membershipService.checkMembership(userIdNumber)
-    setMembershipStatus(status)
+    
+    // 3. Verificar si el usuario tiene membershipType en el contexto o localStorage
+    const userMembershipType = contextUser?.membershipType || userData.membershipType
+    console.log('💳 [Dashboard] UserMembershipType detected:', userMembershipType)
+    
+    // 4. Si el usuario tiene membershipType, usarlo directamente (más confiable que el endpoint status)
+    if (userMembershipType && userMembershipType !== 'null') {
+      console.log('✅ [Dashboard] Usando membershipType del usuario:', userMembershipType)
+      
+      // Mapear el tipo de membresía
+      let mappedType = MembershipTypeName.NONE
+      if (userMembershipType.toLowerCase() === 'basico' || userMembershipType.toLowerCase() === 'basic') {
+        mappedType = MembershipTypeName.BASIC
+      } else if (userMembershipType.toLowerCase() === 'premium') {
+        mappedType = MembershipTypeName.PREMIUM
+      } else if (userMembershipType.toLowerCase() === 'elite' || userMembershipType.toLowerCase() === 'vip') {
+        mappedType = MembershipTypeName.ELITE
+      }
+      
+      setMembershipStatus({
+        isActive: true,
+        status: "ACTIVE",
+        membershipType: mappedType,
+      })
+    } else {
+      // 5. Si no hay membershipType, consultar el endpoint status
+      console.log('🔄 [Dashboard] No membershipType found, checking status endpoint...')
+      const status = await membershipService.checkMembership(userIdNumber)
+      console.log('📥 [Dashboard] Status from backend:', status)
+      setMembershipStatus(status)
+    }
     
   } catch (error) {
     console.error('❌ [Dashboard] Error loading user data:', error)
@@ -89,6 +137,19 @@ export default function DashboardPage() {
   const handleLogout = () => {
     userService.clearAuth()
     router.push('/')
+  }
+
+  const handleRefreshMembership = async () => {
+    setRefreshing(true)
+    try {
+      console.log('🔄 [Dashboard] Forzando recarga de membresía...')
+      await loadUserData()
+      console.log('✅ [Dashboard] Membresía recargada')
+    } catch (error) {
+      console.error('❌ [Dashboard] Error al refrescar membresía:', error)
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const getMembershipInfo = () => {
@@ -222,6 +283,16 @@ export default function DashboardPage() {
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-xl font-semibold text-theme-primary">{membershipInfo.title}</h3>
                         <Badge className={membershipInfo.badgeColor}>{membershipInfo.badge}</Badge>
+                        <Button
+                          onClick={handleRefreshMembership}
+                          variant="ghost"
+                          size="sm"
+                          disabled={refreshing}
+                          className="ml-auto"
+                          aria-label="Actualizar estado de membresía"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        </Button>
                       </div>
                       <p className="text-theme-secondary mb-4">{membershipInfo.description}</p>
                       {(!membershipStatus || !membershipStatus.isActive) && (

@@ -11,9 +11,9 @@
 .dark-theme {
   --background: #000000;
   --foreground: #ffffff;
-  --card: #000000;
+  --card: #0f0f0f;
   --card-foreground: #ffffff;
-  --popover: #000000;
+  --popover: #0f0f0f;
   --popover-foreground: #ffffff;
   --primary: #dc2626;
   --primary-foreground: #ffffff;
@@ -25,23 +25,23 @@
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #333333;
+  --border: #2a2a2a;
   --input: #1a1a1a;
   --ring: #dc2626;
   --radius: 0.625rem;
   
   /* FitZone Brand Colors - Tema Oscuro */
   --fitzone-bg-primary: #000000;
-  --fitzone-bg-secondary: #0a0a0a;
+  --fitzone-bg-secondary: #0f0f0f;
   --fitzone-bg-tertiary: #1a1a1a;
   --fitzone-text-primary: #ffffff;
-  --fitzone-text-secondary: #b3b3b3;
-  --fitzone-text-muted: #808080;
+  --fitzone-text-secondary: #d1d1d1;
+  --fitzone-text-muted: #999999;
   --fitzone-red-primary: #ef4444;
   --fitzone-red-secondary: #f87171;
   --fitzone-red-hover: #dc2626;
-  --fitzone-border-primary: #333333;
-  --fitzone-border-secondary: #262626;
+  --fitzone-border-primary: #2a2a2a;
+  --fitzone-border-secondary: #1f1f1f;
   
   /* Colores de estado para modo oscuro */
   --fitzone-success: #22c55e;
@@ -268,6 +268,21 @@
   background-color: var(--card);
   color: var(--card-foreground);
   border: 1px solid var(--fitzone-border-primary);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  transition: all 200ms ease;
+}
+
+.card-theme:hover {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
+}
+
+.light .card-theme {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.light .card-theme:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Botones adaptativos */
@@ -288,6 +303,58 @@
 
 .btn-theme-secondary:hover {
   background-color: var(--fitzone-bg-tertiary);
+}
+
+/* Variantes de cards mejoradas */
+.card-elevated {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--fitzone-border-primary);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  transition: all 200ms ease;
+}
+
+.card-elevated:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.light .card-elevated {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.light .card-elevated:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(239, 68, 68, 0.1);
+}
+
+.card-subtle {
+  background-color: var(--fitzone-bg-secondary);
+  color: var(--fitzone-text-primary);
+  border: 1px solid var(--fitzone-border-secondary);
+  transition: all 200ms ease;
+}
+
+.card-subtle:hover {
+  background-color: var(--fitzone-bg-tertiary);
+  border-color: var(--fitzone-border-primary);
+}
+
+.card-accent {
+  background: linear-gradient(135deg, var(--fitzone-bg-secondary) 0%, var(--fitzone-bg-tertiary) 100%);
+  color: var(--fitzone-text-primary);
+  border: 1px solid var(--fitzone-border-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 200ms ease;
+}
+
+.card-accent:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+.light .card-accent {
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Estados adaptativos */
@@ -1040,13 +1107,23 @@ html.text-xl h4 { font-size: calc(var(--base-font-size) * 1.25) !important; }
 .card-hover {
   background-color: var(--fitzone-bg-secondary);
   border: 1px solid var(--fitzone-border-primary);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
   transition: all 300ms ease;
 }
 
 .card-hover:hover {
+  background-color: var(--fitzone-bg-tertiary);
   border-color: rgba(239, 68, 68, 0.5);
-  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2);
-  transform: scale(1.05);
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3), 0 4px 6px -2px rgba(239, 68, 68, 0.2);
+  transform: scale(1.02);
+}
+
+.light .card-hover {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.light .card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.2), 0 4px 6px -2px rgba(239, 68, 68, 0.1);
 }
 
 /* Texto con gradiente rojo */

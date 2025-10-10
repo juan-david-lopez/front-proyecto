@@ -6,6 +6,7 @@ import { UserRole } from "../types/user"
 import { WorkerProfile, DEFAULT_PERMISSIONS } from "../types/worker"
 import { clearAuthStorage, hasValidSession, getAuthToken, setAuthToken, getUserData, setUserData, forceCompleteLogout, clearLoginFormData } from "../utils/auth-storage"
 import authService from "../services/authService"
+import userService from "../services/userService"
 
 interface User {
   id: string
@@ -25,6 +26,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateUser: (userData: Partial<User>) => void
+  refreshUser: () => Promise<void>
   hasPermission: (resource: string, action: string) => boolean
   getRedirectPath: () => string
 }
@@ -145,15 +147,91 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           response.refreshToken || response.accessToken
         )
 
+        // Extraer idUser del response de diferentes posibles ubicaciones
+        const responseAny = response as any;
+        const idUser = response.data?.idUser 
+          || response.data?.id 
+          || responseAny.idUser 
+          || responseAny.id
+          || responseAny.userId;
+
+        console.log("[AuthContext] ID de usuario detectado:", idUser)
+        console.log("[AuthContext] Response data completa:", response.data)
+
+        // Validar que el idUser sea válido (no 0, no undefined, no null)
+        if (!idUser || idUser === 0) {
+          console.error("[AuthContext] ⚠️ ID de usuario inválido recibido del backend:", idUser)
+          
+          // Intentar obtener el usuario del backend usando el email
+          try {
+            console.log("[AuthContext] Intentando obtener usuario por email:", email)
+            const userByEmail = await userService.getUserByEmail(email)
+            
+            if (userByEmail?.idUser) {
+              console.log("[AuthContext] ✅ Usuario obtenido por email con ID:", userByEmail.idUser)
+              
+              // Crear userData con el ID correcto
+              const userData: any = {
+                id: userByEmail.idUser.toString(),
+                idUser: userByEmail.idUser,
+                email: userByEmail.email || email,
+                name: userByEmail.name || "Usuario",
+                membershipType: response.membershipStatus || null,
+                role: userByEmail.userRole || UserRole.MEMBER,
+                userRole: userByEmail.userRole || UserRole.MEMBER,
+                avatar: "/avatar-placeholder.jpg",
+                isActive: userByEmail.isActive !== undefined ? userByEmail.isActive : true,
+                createdAt: userByEmail.createdAt || new Date().toISOString(),
+                updatedAt: userByEmail.updatedAt || new Date().toISOString(),
+              }
+
+              // Si es un trabajador, agregar el perfil de trabajador
+              if (userData.role !== UserRole.MEMBER) {
+                userData.workerProfile = {
+                  id: `worker-${userData.id}`,
+                  userId: userData.idUser,
+                  role: userData.role,
+                  permissions: DEFAULT_PERMISSIONS[userData.role as UserRole] || [],
+                  isActive: true,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                }
+              }
+
+              console.log("[AuthContext] Usuario logueado completamente (recuperado por email):", userData)
+              
+              // Guardar en localStorage
+              setAuthToken(response.accessToken)
+              setUserData(userData)
+              authService.setUserInfo(userData)
+              setUser(userData)
+
+              // Limpiar email temporal
+              if (typeof window !== "undefined") {
+                sessionStorage.removeItem("pending_login_email")
+              }
+
+              return { success: true }
+            }
+          } catch (emailError) {
+            console.error("[AuthContext] Error obteniendo usuario por email:", emailError)
+          }
+          
+          return { 
+            success: false, 
+            error: "No se pudo obtener la información completa del usuario. Por favor, contacta al administrador." 
+          }
+        }
+
         // Crear objeto de usuario básico con los datos disponibles
         const userData: any = {
-          id: response.data?.idUser?.toString() || response.data?.id?.toString() || Date.now().toString(),
-          idUser: response.data?.idUser || response.data?.id || 0, // ⚠️ IMPORTANTE: Agregar idUser
+          id: idUser.toString(),
+          idUser: idUser,
           email: email,
           name: response.data?.name || response.data?.firstName || "Usuario",
           membershipType: response.membershipStatus || null,
           role: response.data?.role || response.data?.userRole || UserRole.MEMBER,
-          userRole: response.data?.role || response.data?.userRole || UserRole.MEMBER, // ⚠️ Agregar userRole también
+          userRole: response.data?.role || response.data?.userRole || UserRole.MEMBER,
           avatar: response.data?.avatar || "/avatar-placeholder.jpg",
           isActive: response.data?.isActive !== undefined ? response.data.isActive : true,
           createdAt: response.data?.createdAt || new Date().toISOString(),
@@ -164,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (userData.role !== UserRole.MEMBER) {
           userData.workerProfile = {
             id: response.data?.workerProfile?.id || `worker-${userData.id}`,
-            userId: parseInt(userData.id),
+            userId: userData.idUser,
             role: userData.role,
             permissions: DEFAULT_PERMISSIONS[userData.role as UserRole] || [],
             isActive: true,
@@ -266,6 +344,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshUser = async () => {
+    try {
+      console.log("[AuthContext] Recargando información del usuario desde backend...")
+      const token = authService.getAccessToken()
+      
+      if (!token || !user) {
+        console.warn("[AuthContext] No hay token o usuario para recargar")
+        return
+      }
+
+      // Obtener información actualizada del usuario desde el BACKEND
+      console.log("[AuthContext] Obteniendo usuario actualizado del backend con ID:", user.id)
+      const updatedUser = await userService.getUserById(parseInt(user.id, 10))
+      
+      if (updatedUser) {
+        console.log("[AuthContext] ✅ Usuario actualizado desde backend:", updatedUser)
+        console.log("[AuthContext] 📋 MembershipType del backend:", updatedUser.membershipType)
+        console.log("[AuthContext] 📋 Tipo de membershipType:", typeof updatedUser.membershipType)
+        
+        // Mapear el membershipType del backend al tipo esperado
+        let membershipType: "basico" | "premium" | "elite" | null = null
+        if (updatedUser.membershipType) {
+          const membershipTypeStr = updatedUser.membershipType.toLowerCase()
+          console.log("[AuthContext] 🔄 Mapeando membershipType:", membershipTypeStr)
+          if (membershipTypeStr === 'basico' || membershipTypeStr === 'basic') {
+            membershipType = 'basico'
+          } else if (membershipTypeStr === 'premium') {
+            membershipType = 'premium'
+          } else if (membershipTypeStr === 'elite' || membershipTypeStr === 'vip') {
+            membershipType = 'elite'
+          }
+        } else {
+          console.warn("[AuthContext] ⚠️ membershipType es null o undefined, el backend no actualizó el campo")
+        }
+        
+        // Crear el objeto de usuario actualizado manteniendo la estructura
+        const refreshedUserData: User = {
+          id: updatedUser.idUser.toString(),
+          email: updatedUser.email,
+          name: updatedUser.name,
+          membershipType: membershipType,
+          role: updatedUser.userRole || user.role,
+          workerProfile: user.workerProfile, // Mantener perfil de trabajador si existe
+          avatar: updatedUser.avatar || user.avatar
+        }
+        
+        console.log("[AuthContext] 🔄 Actualizando usuario en contexto y localStorage:", refreshedUserData)
+        
+        // Actualizar en localStorage
+        setUserData(refreshedUserData)
+        authService.setUserInfo(refreshedUserData)
+        
+        // Actualizar estado del contexto
+        setUser(refreshedUserData)
+        
+        console.log("[AuthContext] ✅ Usuario recargado exitosamente con membresía:", refreshedUserData.membershipType)
+      }
+    } catch (error) {
+      console.error("[AuthContext] ❌ Error recargando usuario desde backend:", error)
+      throw error // Propagar el error para que la página de éxito lo maneje
+    }
+  }
+
   const hasPermission = (resource: string, action: string): boolean => {
     if (!user || !user.workerProfile) return false;
     const permission = user.workerProfile.permissions.find(p => p.resource === resource);
@@ -298,6 +439,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       updateUser,
+      refreshUser,
       hasPermission,
       getRedirectPath
     }}>
@@ -320,6 +462,7 @@ export function useAuth() {
       register: async () => ({ success: false, error: "Auth not initialized" }),
       logout: () => {},
       updateUser: () => {},
+      refreshUser: async () => {},
       hasPermission: () => false,
       getRedirectPath: () => "/login"
     }

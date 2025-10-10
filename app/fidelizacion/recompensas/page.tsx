@@ -9,7 +9,7 @@ import type { LoyaltyReward, LoyaltyProfile } from "@/types/loyalty"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Gift, Lock, CheckCircle2, Sparkles, Copy, ArrowLeft } from "lucide-react"
@@ -228,6 +228,9 @@ export default function RecompensasPage() {
             <DialogContent className="card-theme">
               <DialogHeader>
                 <DialogTitle className="text-2xl text-theme-primary">Confirmar Canje</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Confirma el canje de {selectedReward.name} por {selectedReward.pointsCost} puntos
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="p-4 rounded-lg bg-theme-secondary/20">
@@ -306,6 +309,9 @@ export default function RecompensasPage() {
                   <Sparkles className="w-8 h-8 mx-auto mb-2 text-yellow-400" />
                   ¡Canje Exitoso! 🎉
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                  Canje completado exitosamente. Tu código de canje es {redemptionCode}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 text-center">
                 <p className="text-theme-secondary">Tu código de canje:</p>

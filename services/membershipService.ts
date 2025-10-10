@@ -163,6 +163,52 @@ class MembershipService {
     return response.data!;
   }
 
+  /**
+   * Obtiene los detalles de la membresía de un usuario
+   * Retorna null si el usuario no tiene membresía (estado válido, no error)
+   * @param userId - ID del usuario
+   * @returns MembershipInfo o null si no tiene membresía
+   */
+  async getMembershipDetails(userId: number): Promise<MembershipInfo | null> {
+    try {
+      // Validar que el userId sea válido
+      if (!userId || isNaN(userId) || userId === 0) {
+        console.warn("⚠️ [MembershipService] Invalid userId:", userId);
+        return null;
+      }
+
+      console.log(`🔄 [MembershipService] Obteniendo detalles de membresía para usuario ${userId}...`);
+      
+      const response = await this.request<ApiResponse<MembershipInfo>>(`/memberships/${userId}`);
+      
+      // Si el backend responde con éxito pero sin datos, el usuario no tiene membresía
+      if (!response.data) {
+        console.log(`ℹ️ [MembershipService] Usuario ${userId} no tiene membresía activa`);
+        return null;
+      }
+
+      // Si la membresía no está activa o es NONE, considerarlo como sin membresía
+      if (response.data.membershipType === MembershipTypeName.NONE || !response.data.isActive) {
+        console.log(`ℹ️ [MembershipService] Usuario ${userId} tiene membresía NONE o inactiva`);
+        return null;
+      }
+
+      console.log(`✅ [MembershipService] Membresía encontrada:`, response.data);
+      return response.data;
+      
+    } catch (error: any) {
+      // Si el error es 404, el usuario no tiene membresía (estado válido)
+      if (error.message?.includes('404') || error.message?.includes('not found')) {
+        console.log(`ℹ️ [MembershipService] Usuario ${userId} no tiene membresía (404)`);
+        return null;
+      }
+      
+      // Para otros errores, logueamos pero también retornamos null
+      console.error("❌ [MembershipService] Error al obtener detalles de membresía:", error);
+      return null;
+    }
+  }
+
   async checkMembership(userId: number): Promise<MembershipStatusResponse> {
     try {
       // Validar que el userId sea válido

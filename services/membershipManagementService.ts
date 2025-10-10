@@ -5,7 +5,8 @@ import {
   SuspendMembershipRequest, 
   CancelMembershipRequest,
   MembershipOperationResponse,
-  MembershipStatus
+  MembershipStatus,
+  MembershipDetailsResponse
 } from '@/types/membership';
 
 interface ApiResponse<T = any> {
@@ -82,13 +83,51 @@ class MembershipManagementService {
 
   // ---------------------------
   // Obtener información detallada de membresía
+  // Maneja tanto usuarios CON membresía como usuarios SIN membresía
   // ---------------------------
-  async getMembershipDetails(userId: number): Promise<MembershipInfo> {
+  async getMembershipDetails(userId: number): Promise<MembershipDetailsResponse> {
+    console.log(`📡 [MembershipManagement] Getting membership details for user ${userId}`);
+    
     try {
-      const response = await this.request<ApiResponse<MembershipInfo>>(`/memberships/details/${userId}`);
-      return response.data || this.getInactiveMembershipInfo();
+      const response = await this.request<MembershipDetailsResponse>(`/memberships/details/${userId}`);
+      console.log(`✅ [MembershipManagement] Membership details:`, response);
+      return response;
     } catch (error) {
       console.error('❌ Error getting membership details:', error);
+      // En caso de error, retornar respuesta por defecto sin membresía
+      return {
+        hasMembership: false,
+        userId: userId,
+        message: 'No se pudo obtener información de membresía',
+        needsLocation: false
+      };
+    }
+  }
+
+  // ---------------------------
+  // Obtener información detallada como MembershipInfo (para métodos internos)
+  // ---------------------------
+  private async getMembershipInfo(userId: number): Promise<MembershipInfo> {
+    try {
+      const details = await this.getMembershipDetails(userId);
+      
+      // Si no tiene membresía, retornar info inactiva
+      if (!details.hasMembership) {
+        return this.getInactiveMembershipInfo();
+      }
+
+      // Convertir MembershipDetailsResponse a MembershipInfo
+      return {
+        id: details.membershipId,
+        status: (details.status as MembershipStatus) || MembershipStatus.ACTIVE,
+        isActive: details.status === 'ACTIVE',
+        startDate: details.startDate,
+        endDate: details.endDate,
+        daysRemaining: details.endDate ? this.calculateDaysRemaining(details.endDate) : 0,
+        suspensionsUsed: 0 // El backend nuevo no devuelve este campo aún
+      };
+    } catch (error) {
+      console.error('❌ Error getting membership info:', error);
       return this.getInactiveMembershipInfo();
     }
   }
@@ -215,7 +254,7 @@ class MembershipManagementService {
   // ---------------------------
   async canSuspendMembership(userId: number): Promise<{ canSuspend: boolean; reason?: string; suspensionsUsed: number }> {
     try {
-      const membershipInfo = await this.getMembershipDetails(userId);
+      const membershipInfo = await this.getMembershipInfo(userId);
       
       if (!membershipInfo.isActive) {
         return { canSuspend: false, reason: 'La membresía no está activa', suspensionsUsed: 0 };

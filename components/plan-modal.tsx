@@ -2,7 +2,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Check, Crown, Star, Users, Zap, Shield, Clock, MapPin, ArrowRight } from "lucide-react"
 import { useEffect, useRef } from "react"
@@ -147,6 +147,10 @@ export function PlanModal({ isOpen, onClose, plan }: PlanModalProps) {
               <DialogTitle className="text-2xl md:text-3xl font-bold text-theme-primary mb-2">
                 Plan {getDisplayName(plan.name)}
               </DialogTitle>
+              
+              <DialogDescription className="sr-only">
+                Detalles completos del plan {getDisplayName(plan.name)} con precio de {formatPrice(plan.monthlyPrice)} por mes
+              </DialogDescription>
               
               {plan.name === 'PREMIUM' && (
                 <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white mb-3 px-3 py-1 shadow-lg text-xs">

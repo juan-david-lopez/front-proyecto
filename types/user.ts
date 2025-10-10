@@ -23,7 +23,7 @@ export interface UserRequest {
   birthDate: string; // yyyy-MM-dd formato
   emergencyContactPhone: string; // OBLIGATORIO según backend
   medicalConditions?: string;
-  mainLocationId?: number;
+  mainLocationId: number; // OBLIGATORIO: Se selecciona en registro para evitar needsLocation
   role: UserRole;
 }
 
@@ -51,6 +51,8 @@ export interface UserResponse {
   createdAt: string;
   updatedAt: string;
   mainLocationId?: number;
+  membershipType?: string | null; // Añadido para reflejar la membresía activa
+  avatar?: string; // Añadido para foto de perfil
 }
 
 export interface ApiResponse<T = any> {

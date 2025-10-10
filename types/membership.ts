@@ -71,6 +71,23 @@ export interface MembershipInfo {
 }
 
 /**
+ * Respuesta del endpoint /memberships/details/{userId}
+ * Maneja tanto usuarios CON membresía como usuarios SIN membresía
+ */
+export interface MembershipDetailsResponse {
+  hasMembership: boolean;           // true = tiene membresía, false = no tiene membresía
+  membershipId?: number;            // ID de la membresía (solo si hasMembership = true)
+  userId: number;                   // ID del usuario
+  membershipTypeName?: string;      // Tipo de membresía: BASIC, PREMIUM, ELITE
+  locationId?: number;              // ID de la ubicación principal
+  startDate?: string;               // Fecha de inicio (ISO)
+  endDate?: string;                 // Fecha de vencimiento (ISO)
+  status?: string;                  // Estado: ACTIVE, EXPIRED, SUSPENDED
+  message: string;                  // Mensaje descriptivo del estado
+  needsLocation: boolean;           // true = debe asignar ubicación antes de comprar
+}
+
+/**
  * Request para renovar membresía
  */
 export interface RenewMembershipRequest {
@@ -109,71 +126,4 @@ export interface MembershipOperationResponse {
   message: string;
   membership?: MembershipInfo;
   error?: string;
-}
-
-/**
- * Tipos de notificación
- */
-export enum NotificationType {
-  EXPIRATION_WARNING = "EXPIRATION_WARNING",     // Advertencia de expiración
-  RENEWAL_REMINDER = "RENEWAL_REMINDER",         // Recordatorio de renovación
-  PAYMENT_SUCCESS = "PAYMENT_SUCCESS",           // Pago exitoso
-  PAYMENT_FAILED = "PAYMENT_FAILED",             // Pago fallido
-  MEMBERSHIP_SUSPENDED = "MEMBERSHIP_SUSPENDED", // Membresía suspendida
-  MEMBERSHIP_CANCELLED = "MEMBERSHIP_CANCELLED", // Membresía cancelada
-  MEMBERSHIP_UPGRADED = "MEMBERSHIP_UPGRADED",   // Membresía mejorada
-  PROMOTION = "PROMOTION",                       // Promoción o descuento
-  SYSTEM_MESSAGE = "SYSTEM_MESSAGE"              // Mensaje del sistema
-}
-
-/**
- * Prioridad de la notificación
- */
-export enum NotificationPriority {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  URGENT = "URGENT"
-}
-
-/**
- * Notificación de membresía
- */
-export interface MembershipNotification {
-  id: string;
-  userId: number;
-  type: NotificationType;
-  priority: NotificationPriority;
-  title: string;
-  message: string;
-  actionUrl?: string;              // URL para acción (ej: renovar)
-  actionLabel?: string;            // Etiqueta del botón de acción
-  isRead: boolean;
-  createdAt: string;
-  readAt?: string;
-  expiresAt?: string;              // Fecha de expiración de la notificación
-  metadata?: Record<string, any>;  // Datos adicionales
-}
-
-/**
- * Request para crear notificación
- */
-export interface CreateNotificationRequest {
-  userId: number;
-  type: NotificationType;
-  priority?: NotificationPriority;
-  title: string;
-  message: string;
-  actionUrl?: string;
-  actionLabel?: string;
-  expiresAt?: string;
-  metadata?: Record<string, any>;
-}
-
-/**
- * Request para actualizar notificación
- */
-export interface UpdateNotificationRequest {
-  isRead?: boolean;
-  readAt?: string;
 }

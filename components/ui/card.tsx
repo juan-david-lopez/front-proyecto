@@ -8,7 +8,8 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       role="article"
       className={cn(
-        "bg-gradient-to-br from-white via-gray-50/30 to-white border-2 border-gray-200 text-gray-900 flex flex-col gap-6 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-300 hover:-translate-y-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-blue-600",
+        "bg-card border border-border text-card-foreground flex flex-col gap-6 rounded-lg p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:border-primary/30 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring",
+        "dark:bg-card dark:border-border dark:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.5)] dark:hover:shadow-[0_10px_15px_-3px_rgba(239,68,68,0.2)]",
         className
       )}
       {...props}
@@ -33,7 +34,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
   return (
     <h3
       data-slot="card-title"
-      className={cn("leading-tight font-bold text-xl text-gray-900 mb-2", className)}
+      className={cn("leading-tight font-bold text-xl text-card-foreground mb-2", className)}
       {...props}
     />
   )
@@ -43,7 +44,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="card-description"
-      className={cn("text-gray-700 text-base leading-relaxed", className)}
+      className={cn("text-muted-foreground text-base leading-relaxed", className)}
       {...props}
     />
   )
