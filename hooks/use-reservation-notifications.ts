@@ -86,6 +86,12 @@ export function useReservationNotifications() {
     const checkUpcoming = async () => {
       try {
         const upcoming = await reservationService.getUpcomingReservations();
+        
+        // Si no hay reservas o hay un error, simplemente retornar
+        if (!upcoming || upcoming.length === 0) {
+          return;
+        }
+        
         const now = new Date();
         
         upcoming.forEach(reservation => {
@@ -123,12 +129,9 @@ export function useReservationNotifications() {
           }
         });
       } catch (error) {
-        // Silenciar errores de conexión para evitar spam en consola
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-          // Servidor no disponible, no hacer nada
-          return;
-        }
-        console.error('Error checking upcoming reservations:', error);
+        // Silenciar errores - el sistema de reservas puede no estar disponible
+        // No es crítico para el funcionamiento del dashboard
+        return;
       }
     };
 

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { BackButton } from '@/components/back-button';
 import {
   Select,
   SelectContent,
@@ -228,6 +229,9 @@ function PaymentHistoryContent() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <BackButton href="/dashboard" label="Volver al Dashboard" />
+        </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Historial de Pagos</h1>
         <p className="text-gray-600">Gestiona y consulta todas tus transacciones</p>
       </div>

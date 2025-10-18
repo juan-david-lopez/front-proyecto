@@ -305,6 +305,96 @@
   background-color: var(--fitzone-bg-tertiary);
 }
 
+/* ===== REGLAS GLOBALES DE TEXTO PARA TEMA ===== */
+/* Estos estilos aseguran que el texto se adapte correctamente en modo claro y oscuro */
+
+/* En modo oscuro (default), texto debe ser blanco */
+:root.dark,
+:root:not(.light) {
+  /* Forzar color base del documento */
+  color: var(--fitzone-text-primary);
+}
+
+:root.dark body,
+:root:not(.light) body,
+:root.dark main,
+:root:not(.light) main,
+:root.dark section,
+:root:not(.light) section,
+:root.dark article,
+:root:not(.light) article,
+:root.dark div,
+:root:not(.light) div,
+:root.dark p,
+:root:not(.light) p,
+:root.dark span,
+:root:not(.light) span,
+:root.dark h1,
+:root:not(.light) h1,
+:root.dark h2,
+:root:not(.light) h2,
+:root.dark h3,
+:root:not(.light) h3,
+:root.dark h4,
+:root:not(.light) h4,
+:root.dark h5,
+:root:not(.light) h5,
+:root.dark h6,
+:root:not(.light) h6,
+:root.dark li,
+:root:not(.light) li,
+:root.dark label,
+:root:not(.light) label,
+:root.dark a,
+:root:not(.light) a {
+  /* Heredar color por defecto, pero permitir override con clases específicas */
+  color: inherit;
+}
+
+/* En modo claro, texto debe ser negro */
+:root.light {
+  color: var(--fitzone-text-primary);
+}
+
+:root.light body,
+:root.light main,
+:root.light section,
+:root.light article,
+:root.light div,
+:root.light p,
+:root.light span,
+:root.light h1,
+:root.light h2,
+:root.light h3,
+:root.light h4,
+:root.light h5,
+:root.light h6,
+:root.light li,
+:root.light label,
+:root.light a {
+  color: inherit;
+}
+
+/* Los iconos en botones rojos siempre deben ser blancos para contraste */
+.bg-red-600 svg,
+.bg-red-700 svg,
+.bg-gradient-to-br.from-red-600 svg,
+.bg-gradient-to-br.to-red-700 svg,
+.bg-gradient-to-r.from-red-600 svg {
+  color: white !important;
+}
+
+/* Los spans dentro de botones rojos también deben ser blancos */
+.bg-red-600 span,
+.bg-red-700 span,
+.bg-gradient-to-br.from-red-600 span,
+.bg-gradient-to-br.to-red-700 span,
+.bg-gradient-to-r.from-red-600 span {
+  color: white !important;
+}
+
+/* ===== FIN DE REGLAS GLOBALES DE TEXTO ===== */
+
 /* Variantes de cards mejoradas */
 .card-elevated {
   background-color: var(--card);

@@ -32,7 +32,6 @@ export function StripePaymentForm({
   const [processing, setProcessing] = useState(false)
   const [succeeded, setSucceeded] = useState(false)
   const [cardError, setCardError] = useState<string | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'checkout'>('card')
 
   // Datos de facturación
   const [billingInfo, setBillingInfo] = useState({
@@ -165,50 +164,6 @@ export function StripePaymentForm({
     }
   }
 
-  const handleCheckoutSession = async () => {
-    if (!user) {
-      onError('Usuario no autenticado')
-      return
-    }
-
-    if (!billingInfo.name || !billingInfo.email) {
-      onError('Por favor completa los datos de facturación')
-      return
-    }
-
-    setProcessing(true)
-
-    try {
-      console.log('🔄 Creando Checkout Session...')
-      const sessionResponse = await paymentService.createCheckoutSession({
-        membershipType: membershipTypeName,
-        userId: parseInt(user.id, 10),
-        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/checkout/cancel`,
-        billingInfo: {
-          name: billingInfo.name,
-          email: billingInfo.email,
-          phone: billingInfo.phone || undefined,
-          address: billingInfo.address || undefined,
-          city: billingInfo.city || undefined,
-          country: 'Colombia',
-        },
-      })
-
-      if (!sessionResponse.success || !sessionResponse.sessionUrl) {
-        throw new Error(sessionResponse.error || 'Error al crear la sesión de pago')
-      }
-
-      console.log('✅ Checkout Session creado, redirigiendo...')
-      // Redirigir a Stripe Checkout
-      window.location.href = sessionResponse.sessionUrl
-    } catch (error: any) {
-      console.error('❌ Error al crear Checkout Session:', error)
-      onError(error.message || 'Error al crear la sesión de pago')
-      setProcessing(false)
-    }
-  }
-
   const cardElementOptions = {
     style: {
       base: {
@@ -229,44 +184,6 @@ export function StripePaymentForm({
 
   return (
     <div className="space-y-6">
-      {/* Selector de método de pago */}
-      <Card>
-        <CardContent className="pt-6 space-y-4">
-          <Label className="text-base font-semibold flex items-center gap-2">
-            <CreditCard className="w-5 h-5" />
-            Método de pago
-          </Label>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('card')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                paymentMethod === 'card'
-                  ? 'border-[#ff6b00] bg-[#ff6b00]/10'
-                  : 'border-border hover:border-[#ff6b00]/50'
-              }`}
-            >
-              <div className="text-sm font-medium">Pago directo</div>
-              <div className="text-xs text-muted-foreground mt-1">Tarjeta de crédito/débito</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('checkout')}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                paymentMethod === 'checkout'
-                  ? 'border-[#ff6b00] bg-[#ff6b00]/10'
-                  : 'border-border hover:border-[#ff6b00]/50'
-              }`}
-            >
-              <div className="text-sm font-medium">Stripe Checkout</div>
-              <div className="text-xs text-muted-foreground mt-1">Página segura de Stripe</div>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Datos de facturación */}
       <Card>
         <CardContent className="pt-6 space-y-4">
@@ -329,36 +246,34 @@ export function StripePaymentForm({
         </CardContent>
       </Card>
 
-      {/* Tarjeta de crédito (solo si método es 'card') */}
-      {paymentMethod === 'card' && (
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              Datos de la tarjeta
-            </Label>
+      {/* Tarjeta de crédito */}
+      <Card>
+        <CardContent className="pt-6 space-y-4">
+          <Label className="text-base font-semibold flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            Datos de la tarjeta
+          </Label>
 
-            <div className="p-4 border rounded-lg bg-background">
-              <CardElement
-                options={cardElementOptions}
-                onChange={handleCardChange}
-              />
+          <div className="p-4 border rounded-lg bg-background">
+            <CardElement
+              options={cardElementOptions}
+              onChange={handleCardChange}
+            />
+          </div>
+
+          {cardError && (
+            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-destructive">{cardError}</p>
             </div>
+          )}
 
-            {cardError && (
-              <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-destructive">{cardError}</p>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Lock className="w-4 h-4" />
-              <span>Tu información está protegida y encriptada por Stripe</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Lock className="w-4 h-4" />
+            <span>Tu información está protegida y encriptada por Stripe</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Estado de éxito */}
       {succeeded && (
@@ -372,8 +287,8 @@ export function StripePaymentForm({
 
       {/* Botón de pago */}
       <Button
-        onClick={paymentMethod === 'card' ? handlePaymentIntentSubmit : handleCheckoutSession}
-        disabled={processing || succeeded || (paymentMethod === 'card' && (!stripe || !elements))}
+        onClick={handlePaymentIntentSubmit}
+        disabled={processing || succeeded || !stripe || !elements}
         size="lg"
         className="w-full bg-[#ff6b00] hover:bg-[#ff6b00]/90 text-white font-semibold py-6"
       >
@@ -384,12 +299,6 @@ export function StripePaymentForm({
           </>
         ) : succeeded ? (
           'Pago completado ✓'
-        ) : paymentMethod === 'checkout' ? (
-          `Ir a Stripe Checkout - ${new Intl.NumberFormat('es-CO', {
-            style: 'currency',
-            currency: 'COP',
-            minimumFractionDigits: 0,
-          }).format(amount)}`
         ) : (
           `Pagar ${new Intl.NumberFormat('es-CO', {
             style: 'currency',

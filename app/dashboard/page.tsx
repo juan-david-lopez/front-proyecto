@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation"
 import { 
   User, BarChart3, CreditCard, Settings, Calendar, 
   Clock, Flame, LogOut, CheckCircle, TrendingUp, 
-  Target, Award, Bell, Activity, Loader2, RefreshCw 
+  Target, Award, Bell, Activity, Loader2, RefreshCw,
+  Shield
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
@@ -301,17 +302,19 @@ export default function DashboardPage() {
                         </Link>
                       )}
                       {membershipStatus?.isActive && (
-                        <div className="flex space-x-3">
-                          <Link href="/dashboard/membresia">
-                            <Button className="bg-red-600 hover:bg-red-700 text-white">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Link href="/dashboard/membresia" className="flex-1">
+                            <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold shadow-md hover:shadow-lg transition-all">
+                              <Shield className="w-4 h-4 mr-2" />
                               Gestionar Membresía
                             </Button>
                           </Link>
-                          <Link href="/membresias">
+                          <Link href="/membresias" className="flex-1">
                             <Button
                               variant="outline"
-                              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent"
+                              className="w-full border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent font-semibold transition-all"
                             >
+                              <TrendingUp className="w-4 h-4 mr-2" />
                               Cambiar Plan
                             </Button>
                           </Link>
@@ -330,39 +333,45 @@ export default function DashboardPage() {
               Acciones Rápidas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
-              <Card
-                className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md"
-                role="gridcell"
-              >
-                <CardContent className="p-6 text-center">
-                  <div
-                    className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
-                    role="img"
-                    aria-label="Icono de perfil"
-                  >
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-theme-primary mb-2">Mi Perfil</h3>
-                  <p className="text-theme-secondary text-sm">Configurar información personal</p>
-                </CardContent>
-              </Card>
+              <Link href="/perfil" className="block">
+                <Card
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md h-full"
+                  role="gridcell"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
+                      role="img"
+                      aria-label="Icono de perfil"
+                    >
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Mi Perfil</h3>
+                    <p className="text-theme-secondary text-sm">Editar datos personales</p>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card
-                className="card-theme border-red-600 border-2 hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md"
-                role="gridcell"
-              >
-                <CardContent className="p-6 text-center">
-                  <div
-                    className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
-                    role="img"
-                    aria-label="Icono de estadísticas"
-                  >
-                    <BarChart3 className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-theme-primary mb-2">Estadísticas</h3>
-                  <p className="text-theme-secondary text-sm">Ver progreso y métricas</p>
-                </CardContent>
-              </Card>
+              <Link href="/dashboard/membresia" className="block">
+                <Card
+                  className="card-theme border-red-600 border-2 hover:bg-red-600/10 transition-all duration-200 cursor-pointer hover:shadow-lg h-full relative overflow-hidden group"
+                  role="gridcell"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/20 to-transparent rounded-bl-full transform group-hover:scale-150 transition-transform duration-300"></div>
+                  <CardContent className="p-6 text-center relative z-10">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-md group-hover:shadow-xl transition-shadow"
+                      role="img"
+                      aria-label="Icono de membresía"
+                    >
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2 group-hover:text-red-600 transition-colors">Gestionar Membresía</h3>
+                    <p className="text-theme-secondary text-sm">Renovar, suspender o cancelar</p>
+                    <Badge className="mt-3 bg-red-100 text-red-700 border-red-300">Destacado</Badge>
+                  </CardContent>
+                </Card>
+              </Link>
 
               <Link href="/dashboard/pagos" className="block">
                 <Card
@@ -413,10 +422,12 @@ export default function DashboardPage() {
                 </h2>
                 <p className="text-theme-secondary capitalize">{currentDate}</p>
               </div>
-              <Button variant="ghost" size="sm" className="text-theme-secondary hover:text-theme-primary">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Ver Historial
-              </Button>
+              <Link href="/dashboard/membresia">
+                <Button variant="ghost" size="sm" className="text-theme-secondary hover:text-theme-primary">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Ver Historial
+                </Button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">

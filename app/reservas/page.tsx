@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BackButton } from '@/components/back-button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Users, Dumbbell, Star, Filter, Search, ArrowRight, CheckCircle, XCircle, Timer, Award, Target } from 'lucide-react';
@@ -246,6 +247,9 @@ export default function ReservationsPage() {
       {/* Header Premium */}
       <div className="bg-theme-primary shadow-sm border-b border-theme">
         <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center gap-4 mb-4">
+            <BackButton href="/dashboard" label="Volver al Dashboard" />
+          </div>
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-lg">
               <Calendar className="w-6 h-6 text-white" />

@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className="dark">
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} bg-theme-primary text-theme-primary`} suppressHydrationWarning>
         <ClientLayout>
           <Suspense fallback={null}>{children}</Suspense>
         </ClientLayout>

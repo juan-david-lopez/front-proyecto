@@ -4,10 +4,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { BackButton } from "@/components/back-button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { PlanModal } from "@/components/plan-modal"
-import { ArrowLeft, Check, Loader2, Crown, Star, Zap, Users, Shield, Heart, Trophy, CheckCircle, ArrowRight } from "lucide-react"
+import { Check, Loader2, Crown, Star, Zap, Users, Shield, Heart, Trophy, CheckCircle, ArrowRight } from "lucide-react"
 import membershipService from "@/services/membershipService"
 import { MembershipType, MembershipTypeName } from "@/types/membership"
 import { useAuth } from "@/contexts/auth-context"
@@ -129,13 +130,7 @@ export default function MembresíasPage() {
     <div className="min-h-screen bg-theme-primary text-theme-primary">
       <header className="px-6 py-6 bg-theme-primary/50 backdrop-blur-sm border-b border-theme">
         <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-theme-primary hover:text-red-500 transition-all duration-300 hover:translate-x-1"
-          >
-            <ArrowLeft size={20} />
-            <span className="font-medium">Volver al inicio</span>
-          </Link>
+          <BackButton href="/" label="Volver al inicio" />
           
           {/* Botón de recarga (solo visible en desarrollo o cuando hay datos locales) */}
           {(process.env.NODE_ENV === 'development' || dataSource === 'local') && (

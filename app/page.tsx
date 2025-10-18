@@ -174,15 +174,17 @@ export default function HomePage() {
           </p>
           
           <div className="flex justify-center items-center">
-            <Button 
-              variant="destructive"
-              size="lg"
-              className="px-12 py-6 text-xl font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 !bg-gradient-to-r !from-red-600 !to-red-700 hover:!from-red-700 hover:!to-red-800 !text-white"
-            >
-              <Dumbbell className="w-6 h-6 mr-3" />
-              Comienza Hoy
-              <ArrowRight className="w-6 h-6 ml-3" />
-            </Button>
+            <Link href="/register">
+              <Button 
+                variant="destructive"
+                size="lg"
+                className="px-12 py-6 text-xl font-bold shadow-2xl transform hover:scale-105 transition-all duration-300 !bg-gradient-to-r !from-red-600 !to-red-700 hover:!from-red-700 hover:!to-red-800 !text-white"
+              >
+                <Dumbbell className="w-6 h-6 mr-3" />
+                Comienza Hoy
+                <ArrowRight className="w-6 h-6 ml-3" />
+              </Button>
+            </Link>
           </div>
           
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -418,14 +420,16 @@ export default function HomePage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button 
-              size="lg"
-              className="btn-primary-red px-12 py-6 text-xl font-bold shadow-2xl"
-            >
-              <Dumbbell className="w-6 h-6 mr-3" />
-              ¡EMPIEZA YA!
-              <Zap className="w-6 h-6 ml-3" />
-            </Button>
+            <Link href="/register">
+              <Button 
+                size="lg"
+                className="btn-primary-red px-12 py-6 text-xl font-bold shadow-2xl"
+              >
+                <Dumbbell className="w-6 h-6 mr-3" />
+                ¡EMPIEZA YA!
+                <Zap className="w-6 h-6 ml-3" />
+              </Button>
+            </Link>
             
             <Link href="/contacto">
               <button 

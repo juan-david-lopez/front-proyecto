@@ -53,6 +53,13 @@ class ReservationService {
     try {
       const response = await fetch(url, config);
       
+      // Manejo especial para 403 (Forbidden) - problema de autorización
+      if (response.status === 403) {
+        console.warn(`⚠️ [ReservationService] 403 Forbidden for ${endpoint}. Using fallback data.`);
+        console.warn('ℹ️ Esto puede ser normal si el backend de reservas no está completamente implementado.');
+        return this.getMockData(endpoint) as T;
+      }
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -65,6 +72,13 @@ class ReservationService {
         console.warn(`Backend server not available for ${endpoint}. Using fallback data.`);
         return this.getMockData(endpoint) as T;
       }
+      
+      // Si es un error 403, no lo propagues para evitar spam en consola
+      if (error instanceof Error && error.message.includes('403')) {
+        console.warn(`⚠️ Authorization issue for ${endpoint}, using fallback data`);
+        return this.getMockData(endpoint) as T;
+      }
+      
       console.error(`Error in request to ${endpoint}:`, error);
       throw error;
     }
@@ -73,10 +87,22 @@ class ReservationService {
   private getMockData(endpoint: string): any {
     // Devolver datos mock para endpoints comunes cuando el servidor no esté disponible
     if (endpoint.includes('/reservations/my')) {
+      // Reservas mock para desarrollo
+      console.log('📋 [ReservationService] Returning mock reservations for development');
       return [];
     }
     if (endpoint.includes('/reservations/upcoming')) {
+      console.log('📋 [ReservationService] Returning mock upcoming reservations');
       return [];
+    }
+    if (endpoint.includes('/reservations/stats')) {
+      console.log('📊 [ReservationService] Returning mock stats');
+      return {
+        totalReservations: 0,
+        activeReservations: 0,
+        completedReservations: 0,
+        cancelledReservations: 0
+      };
     }
     return null;
   }

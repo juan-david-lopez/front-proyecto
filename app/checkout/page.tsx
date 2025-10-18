@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Check, Lock, Crown, Star, Users, Shield } from "lucide-react"
-import Link from "next/link"
+import { BackButton } from "@/components/back-button"
+import { Check, Lock, Crown, Star, Users, Shield } from "lucide-react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { FitZoneLogo } from "@/components/fitzone-logo"
@@ -248,10 +248,7 @@ export default function CheckoutPage() {
       {/* Header */}
       <header className="border-b border-theme p-4 bg-theme-primary/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/membresias" className="flex items-center space-x-2 hover:text-[#ff6b00] transition-colors" aria-label="Volver a planes">
-            <ArrowLeft className="w-5 h-5" />
-            <span>Volver a planes</span>
-          </Link>
+          <BackButton href="/membresias" label="Volver a planes" />
           <FitZoneLogo 
             size="lg" 
             variant="light" 

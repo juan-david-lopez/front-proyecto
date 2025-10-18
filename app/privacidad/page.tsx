@@ -1,21 +1,15 @@
 "use client"
 
-import { ArrowLeft, Shield, FileText, Lock, Eye, UserCheck, Database, Settings } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Shield, FileText, Lock, Eye, UserCheck, Database, Settings } from "lucide-react"
+import { BackButton } from "@/components/back-button"
 import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
 
 export default function PrivacidadPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       <header className="px-6 py-6 bg-black/50 backdrop-blur-sm border-b border-gray-800">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-white hover:text-red-500 transition-all duration-300 hover:translate-x-1"
-        >
-          <ArrowLeft size={20} />
-          <span className="font-medium">Volver al inicio</span>
-        </Link>
+        <BackButton href="/" label="Volver al inicio" />
       </header>
 
       <main className="px-6 py-12">
