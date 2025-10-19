@@ -11,12 +11,10 @@ export function GlobalAccessibilityPanel() {
   const { theme, fontSize, toggleTheme, increaseFontSize, decreaseFontSize, resetFontSize } = useAccessibility()
 
   const fontSizeLabels = {
-    "text-xs": "Muy Pequeño",
-    "text-sm": "Pequeño",
-    "text-base": "Normal",
-    "text-lg": "Grande",
-    "text-xl": "Muy Grande",
-    "text-2xl": "Extra Grande",
+    "small": "Pequeño",
+    "medium": "Normal", 
+    "large": "Grande",
+    "extra-large": "Extra Grande",
   }
 
   const handleToggleTheme = () => {
@@ -44,7 +42,7 @@ export function GlobalAccessibilityPanel() {
       {/* Floating Accessibility Button */}
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110"
+        className="accessibility-button h-14 w-14 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-all duration-300 hover:scale-110"
         aria-label="Abrir panel de accesibilidad"
         title="Configuración de Accesibilidad"
       >
@@ -53,7 +51,7 @@ export function GlobalAccessibilityPanel() {
 
       {/* Accessibility Panel Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="accessibility-modal flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <Card className="w-full max-w-md mx-4 bg-background border-border shadow-2xl">
             <div className="p-6">
               {/* Header */}

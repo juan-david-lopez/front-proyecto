@@ -11,6 +11,8 @@ import { FitZoneLogo } from "@/components/fitzone-logo"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import authService from "@/services/authService"
+import { userService } from "@/services/userService"
+import { useAuth } from "@/contexts/auth-context"
 
 // Props personalizadas para los inputs del OTP
 interface OTPInputProps {
@@ -46,6 +48,18 @@ export default function VerifyOTPPage() {
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
   const verificationType = searchParams.get("type") || "register"
+  
+  // Obtener funciones del contexto de autenticación
+  let completeLoginWithOtp = async (email: string, otp: string): Promise<{ success: boolean; error?: string }> => ({ success: false, error: "Auth not available" })
+  let getRedirectPath = () => "/dashboard"
+  
+  try {
+    const auth = useAuth()
+    completeLoginWithOtp = auth.completeLoginWithOtp
+    getRedirectPath = auth.getRedirectPath
+  } catch (error) {
+    console.warn("VerifyOTP: AuthProvider no disponible aún")
+  }
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [isLoading, setIsLoading] = useState(false)
@@ -126,29 +140,65 @@ export default function VerifyOTPPage() {
     setSuccess("")
 
     try {
-      console.log("[FitZone] Verificando OTP:", { email, otp: otpCode })
+      console.log("[FitZone] Verificando OTP:", { email, otp: otpCode, type: verificationType })
 
-      const response = await authService.verifyOtp(email, otpCode)
+      let response;
+      
+      if (verificationType === "login") {
+        // Para login: usar método específico a través del contexto
+        console.log("[FitZone] Completando login con OTP...")
+        
+        const loginResult = await completeLoginWithOtp(email, otpCode)
+        
+        if (loginResult.success) {
+          setSuccess("¡Login completado exitosamente! Redirigiendo...")
+          console.log("[FitZone] Login completado exitosamente")
+          
+          setTimeout(() => {
+            const redirectPath = getRedirectPath()
+            router.push(redirectPath)
+          }, 2000)
+          return
+        } else {
+          console.error("[FitZone] Error completando login:", loginResult.error)
+          setError(loginResult.error || "Error completando inicio de sesión")
+          return
+        }
+        
+      } else {
+        // Para registro: usar método de registro OTP
+        response = await authService.verifyOtp(email, otpCode, verificationType)
+      }
+
       console.log("[FitZone] Respuesta de verificación OTP:", response)
 
-      if (response.success) {
+      if (response && response.success) {
         setSuccess("¡Verificación exitosa! Redirigiendo...")
 
-        if (response.accessToken && response.refreshToken) {
-          authService.setTokens(response.accessToken, response.refreshToken)
+        // Para registro: manejar redirección al login
+        try {
+          // Guardar información básica temporalmente
+          authService.setUserInfo({
+            email: response.email || email,
+            isAuthenticated: false, // Aún no está completamente autenticado
+            loginTime: new Date().toISOString(),
+            verificationCompleted: true
+          })
+          
+          // Redirigir al login para completar el proceso
+          setTimeout(() => {
+            router.push(`/login?verified=true`)
+          }, 2000)
+          
+        } catch (userError) {
+          console.error("[FitZone] Error obteniendo información del usuario:", userError)
+          // Fallback: redirigir al login
+          setTimeout(() => {
+            router.push("/login")
+          }, 2000)
         }
 
-        authService.setUserInfo({
-          email: response.email || email,
-          isAuthenticated: true,
-          loginTime: new Date().toISOString(),
-        })
-
         localStorage.removeItem("pendingLogin")
-
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 2000)
       } else {
         setError(response.error || "Error al verificar el código")
       }
@@ -193,7 +243,11 @@ export default function VerifyOTPPage() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
       <header className="absolute top-6 left-1/2 transform -translate-x-1/2">
-        <FitZoneLogo />
+        <FitZoneLogo 
+          size="lg" 
+          variant="light" 
+          href="/"
+        />
       </header>
 
       <main className="w-full max-w-md">

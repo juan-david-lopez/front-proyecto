@@ -9,21 +9,28 @@ import { useRouter } from "next/navigation"
 import { 
   User, BarChart3, CreditCard, Settings, Calendar, 
   Clock, Flame, LogOut, CheckCircle, TrendingUp, 
-  Target, Award, Bell, Activity, Loader2 
+  Target, Award, Bell, Activity, Loader2, RefreshCw,
+  Shield
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
 import { membershipService } from "@/services/membershipService"
 import { MembershipStatusResponse, MembershipTypeName } from "@/types/membership"
 import { userService } from "@/services/userService"
+import { ReservationWidget } from "@/components/reservation/reservation-widget"
+import { NotificationBell } from "@/components/reservation/notification-bell"
+import { MembershipNotificationBell } from "@/components/membership-notification-bell"
+import { useAuth } from "@/contexts/auth-context"
 
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { user: contextUser, refreshUser } = useAuth()
   const [userName, setUserName] = useState("Usuario")
   const [userId, setUserId] = useState<number | null>(null)
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [currentDate] = useState(new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
@@ -33,23 +40,91 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadUserData()
-  }, [])
+  }, [contextUser?.membershipType]) // Re-cargar cuando cambie el tipo de membresía en el contexto
 
  const loadUserData = async () => {
   try {
     setLoading(true)
-    const userData = userService.getCurrentUser()
-    if (userData) {
-      setUserName(userData.firstName || userData.email || "Usuario")
-      const userIdNumber = Number(userData.idUser || 0)
-      setUserId(userIdNumber)
-      if (!isNaN(userIdNumber)) {
-        const status = await membershipService.checkMembership(userIdNumber)
-        setMembershipStatus(status)
-      }
+    
+    // 1. Primero, intentar refrescar el usuario desde el backend
+    console.log('🔄 [Dashboard] Refrescando usuario desde backend...')
+    try {
+      await refreshUser()
+      console.log('✅ [Dashboard] Usuario refrescado desde backend')
+    } catch (error) {
+      console.warn('⚠️ [Dashboard] Error al refrescar usuario, usando datos del localStorage:', error)
     }
+    
+    // 2. Obtener datos actualizados (ya sea del backend o del localStorage)
+    const userData = userService.getCurrentUser()
+    
+    console.log('👤 [Dashboard] User data from storage:', userData)
+    console.log('💳 [Dashboard] MembershipType from context:', contextUser?.membershipType)
+    
+    if (!userData) {
+      console.warn('⚠️ [Dashboard] No user data found in storage')
+      setMembershipStatus({
+        isActive: false,
+        status: "INACTIVE",
+        membershipType: MembershipTypeName.NONE,
+      })
+      return
+    }
+
+    setUserName(userData.name || userData.email || "Usuario")
+    
+    // El objeto puede venir del contexto (User.id: string) o de localStorage (UserResponse.idUser: number)
+    // Intentar obtener el ID de ambas formas
+    const userIdString = (userData as any).id || userData.idUser?.toString()
+    const userIdNumber = Number(userIdString)
+    console.log('🆔 [Dashboard] User ID (string):', userIdString)
+    console.log('🆔 [Dashboard] User ID (number):', userIdNumber)
+    
+    if (!userIdNumber || isNaN(userIdNumber) || userIdNumber === 0) {
+      console.error('❌ [Dashboard] Invalid user ID. userData:', userData)
+      setMembershipStatus({
+        isActive: false,
+        status: "INACTIVE",
+        membershipType: MembershipTypeName.NONE,
+      })
+      return
+    }
+    
+    setUserId(userIdNumber)
+    
+    // 3. Verificar si el usuario tiene membershipType en el contexto o localStorage
+    const userMembershipType = contextUser?.membershipType || userData.membershipType
+    console.log('💳 [Dashboard] UserMembershipType detected:', userMembershipType)
+    
+    // 4. Si el usuario tiene membershipType, usarlo directamente (más confiable que el endpoint status)
+    if (userMembershipType && userMembershipType !== 'null') {
+      console.log('✅ [Dashboard] Usando membershipType del usuario:', userMembershipType)
+      
+      // Mapear el tipo de membresía
+      let mappedType = MembershipTypeName.NONE
+      if (userMembershipType.toLowerCase() === 'basico' || userMembershipType.toLowerCase() === 'basic') {
+        mappedType = MembershipTypeName.BASIC
+      } else if (userMembershipType.toLowerCase() === 'premium') {
+        mappedType = MembershipTypeName.PREMIUM
+      } else if (userMembershipType.toLowerCase() === 'elite' || userMembershipType.toLowerCase() === 'vip') {
+        mappedType = MembershipTypeName.ELITE
+      }
+      
+      setMembershipStatus({
+        isActive: true,
+        status: "ACTIVE",
+        membershipType: mappedType,
+      })
+    } else {
+      // 5. Si no hay membershipType, consultar el endpoint status
+      console.log('🔄 [Dashboard] No membershipType found, checking status endpoint...')
+      const status = await membershipService.checkMembership(userIdNumber)
+      console.log('📥 [Dashboard] Status from backend:', status)
+      setMembershipStatus(status)
+    }
+    
   } catch (error) {
-    console.error('Error loading user data:', error)
+    console.error('❌ [Dashboard] Error loading user data:', error)
     setMembershipStatus({
       isActive: false,
       status: "INACTIVE",
@@ -65,15 +140,28 @@ export default function DashboardPage() {
     router.push('/')
   }
 
+  const handleRefreshMembership = async () => {
+    setRefreshing(true)
+    try {
+      console.log('🔄 [Dashboard] Forzando recarga de membresía...')
+      await loadUserData()
+      console.log('✅ [Dashboard] Membresía recargada')
+    } catch (error) {
+      console.error('❌ [Dashboard] Error al refrescar membresía:', error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
   const getMembershipInfo = () => {
     if (!membershipStatus) {
       return {
         title: "Cargando estado...",
         description: "Verificando información de membresía",
-        color: "bg-gray-600",
+        color: "bg-theme-secondary",
         icon: CreditCard,
         badge: "Cargando",
-        badgeColor: "bg-gray-100 text-gray-800",
+        badgeColor: "bg-theme-secondary text-theme-primary",
         expiryDate: null
       }
     }
@@ -95,13 +183,13 @@ export default function DashboardPage() {
             badgeColor: "bg-blue-100 text-blue-800",
             expiryDate
           }
-        case "VIP":
+        case "ELITE":
           return {
-            title: "Membresía VIP Activa",
+            title: "Membresía ELITE Activa",
             description: `Acceso completo + clases personalizadas + sauna - Vence: ${expiryDate}`,
             color: "bg-purple-600",
             icon: Award,
-            badge: "VIP",
+            badge: "ELITE",
             badgeColor: "bg-purple-100 text-purple-800",
             expiryDate
           }
@@ -120,7 +208,7 @@ export default function DashboardPage() {
       return {
         title: "Sin Membresía Activa",
         description: "Adquiere una membresía para acceder a todos los beneficios",
-        color: "bg-gray-600",
+        color: "bg-theme-secondary",
         icon: CreditCard,
         badge: "Inactiva",
         badgeColor: "bg-gray-100 text-gray-800",
@@ -134,18 +222,18 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-red-500" />
-        <span className="ml-2">Cargando dashboard...</span>
+        <span className="ml-2 text-theme-primary">Cargando dashboard...</span>
       </div>
     )
   }
 
   return (
     <AuthGuard requireAuth={true}>
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-theme-primary text-theme-primary">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 bg-background border-b border-border shadow-sm">
+        <header className="flex items-center justify-between px-6 py-4 bg-theme-primary border-b border-theme shadow-sm">
           <div className="flex items-center space-x-4">
             <div
               className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center shadow-lg"
@@ -155,20 +243,14 @@ export default function DashboardPage() {
               <span className="text-white font-bold text-lg">{userName.charAt(0).toUpperCase()}</span>
             </div>
             <div>
-              <h1 className="text-xl font-semibold">¡Hola, {userName}!</h1>
-              <p className="text-sm text-muted-foreground">Bienvenido a tu dashboard</p>
+              <h1 className="text-xl font-semibold text-theme-primary">¡Hola, {userName}!</h1>
+              <p className="text-sm text-theme-secondary">Bienvenido a tu dashboard</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Notificaciones"
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
+            <MembershipNotificationBell />
+            <NotificationBell />
             <Button
               onClick={handleLogout}
               variant="outline"
@@ -187,7 +269,7 @@ export default function DashboardPage() {
             <h2 id="membership-heading" className="text-2xl font-bold text-red-500 mb-4">
               Estado de Membresía
             </h2>
-            <Card className="bg-card border-border shadow-sm">
+            <Card className="card-theme border-theme shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4">
@@ -200,28 +282,42 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-semibold text-card-foreground">{membershipInfo.title}</h3>
+                        <h3 className="text-xl font-semibold text-theme-primary">{membershipInfo.title}</h3>
                         <Badge className={membershipInfo.badgeColor}>{membershipInfo.badge}</Badge>
+                        <Button
+                          onClick={handleRefreshMembership}
+                          variant="ghost"
+                          size="sm"
+                          disabled={refreshing}
+                          className="ml-auto"
+                          aria-label="Actualizar estado de membresía"
+                        >
+                          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        </Button>
                       </div>
-                      <p className="text-muted-foreground mb-4">{membershipInfo.description}</p>
+                      <p className="text-theme-secondary mb-4">{membershipInfo.description}</p>
                       {(!membershipStatus || !membershipStatus.isActive) && (
                         <Link href="/membresias">
                           <Button className="bg-red-600 hover:bg-red-700 text-white">Adquirir Membresía</Button>
                         </Link>
                       )}
                       {membershipStatus?.isActive && (
-                        <div className="flex space-x-3">
-                          <Link href="/membresias">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Link href="/dashboard/membresia" className="flex-1">
+                            <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-semibold shadow-md hover:shadow-lg transition-all">
+                              <Shield className="w-4 h-4 mr-2" />
+                              Gestionar Membresía
+                            </Button>
+                          </Link>
+                          <Link href="/membresias" className="flex-1">
                             <Button
                               variant="outline"
-                              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent"
+                              className="w-full border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent font-semibold transition-all"
                             >
+                              <TrendingUp className="w-4 h-4 mr-2" />
                               Cambiar Plan
                             </Button>
                           </Link>
-                          <Button variant="ghost" className="text-muted-foreground">
-                            Ver Detalles
-                          </Button>
                         </div>
                       )}
                     </div>
@@ -237,62 +333,68 @@ export default function DashboardPage() {
               Acciones Rápidas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
-              <Card
-                className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer hover:shadow-md"
-                role="gridcell"
-              >
-                <CardContent className="p-6 text-center">
-                  <div
-                    className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
-                    role="img"
-                    aria-label="Icono de perfil"
-                  >
-                    <User className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Mi Perfil</h3>
-                  <p className="text-muted-foreground text-sm">Configurar información personal</p>
-                </CardContent>
-              </Card>
-
-              <Card
-                className="bg-card border-red-600 border-2 hover:bg-accent transition-all duration-200 cursor-pointer hover:shadow-md"
-                role="gridcell"
-              >
-                <CardContent className="p-6 text-center">
-                  <div
-                    className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
-                    role="img"
-                    aria-label="Icono de estadísticas"
-                  >
-                    <BarChart3 className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-card-foreground mb-2">Estadísticas</h3>
-                  <p className="text-muted-foreground text-sm">Ver progreso y métricas</p>
-                </CardContent>
-              </Card>
-
-              <Link href="/membresias" className="block">
+              <Link href="/perfil" className="block">
                 <Card
-                  className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer h-full hover:shadow-md"
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md h-full"
+                  role="gridcell"
+                >
+                  <CardContent className="p-6 text-center">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
+                      role="img"
+                      aria-label="Icono de perfil"
+                    >
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Mi Perfil</h3>
+                    <p className="text-theme-secondary text-sm">Editar datos personales</p>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/dashboard/membresia" className="block">
+                <Card
+                  className="card-theme border-red-600 border-2 hover:bg-red-600/10 transition-all duration-200 cursor-pointer hover:shadow-lg h-full relative overflow-hidden group"
+                  role="gridcell"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-500/20 to-transparent rounded-bl-full transform group-hover:scale-150 transition-transform duration-300"></div>
+                  <CardContent className="p-6 text-center relative z-10">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-md group-hover:shadow-xl transition-shadow"
+                      role="img"
+                      aria-label="Icono de membresía"
+                    >
+                      <Shield className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2 group-hover:text-red-600 transition-colors">Gestionar Membresía</h3>
+                    <p className="text-theme-secondary text-sm">Renovar, suspender o cancelar</p>
+                    <Badge className="mt-3 bg-red-100 text-red-700 border-red-300">Destacado</Badge>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/dashboard/pagos" className="block">
+                <Card
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer h-full hover:shadow-md"
                   role="gridcell"
                 >
                   <CardContent className="p-6 text-center">
                     <div
                       className="w-12 h-12 bg-gradient-to-br from-orange-600 to-orange-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm"
                       role="img"
-                      aria-label="Icono de membresías"
+                      aria-label="Icono de pagos"
                     >
                       <CreditCard className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Membresías</h3>
-                    <p className="text-muted-foreground text-sm">Gestionar planes y pagos</p>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Pagos</h3>
+                    <p className="text-theme-secondary text-sm">Historial y recibos</p>
                   </CardContent>
                 </Card>
               </Link>
 
               <Link href="/configuracion" className="block">
                 <Card
-                  className="bg-card border-border hover:bg-accent transition-all duration-200 cursor-pointer h-full hover:shadow-md"
+                  className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer h-full hover:shadow-md"
                   role="gridcell"
                 >
                   <CardContent className="p-6 text-center">
@@ -303,8 +405,8 @@ export default function DashboardPage() {
                     >
                       <Settings className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-card-foreground mb-2">Configuración</h3>
-                    <p className="text-muted-foreground text-sm">Ajustes de la aplicación</p>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2">Configuración</h3>
+                    <p className="text-theme-secondary text-sm">Ajustes de la aplicación</p>
                   </CardContent>
                 </Card>
               </Link>
@@ -318,16 +420,18 @@ export default function DashboardPage() {
                 <h2 id="stats-heading" className="text-2xl font-bold text-red-500">
                   Estadísticas de Hoy
                 </h2>
-                <p className="text-muted-foreground capitalize">{currentDate}</p>
+                <p className="text-theme-secondary capitalize">{currentDate}</p>
               </div>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Ver Historial
-              </Button>
+              <Link href="/dashboard/membresia">
+                <Button variant="ghost" size="sm" className="text-theme-secondary hover:text-theme-primary">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Ver Historial
+                </Button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -339,8 +443,8 @@ export default function DashboardPage() {
                         <Calendar className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">2</div>
-                        <div className="text-muted-foreground text-sm">Entrenamientos</div>
+                        <div className="text-2xl font-bold text-theme-primary">2</div>
+                        <div className="text-theme-secondary text-sm">Entrenamientos</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+1</div>
@@ -348,7 +452,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -360,8 +464,8 @@ export default function DashboardPage() {
                         <Clock className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">1h 15m</div>
-                        <div className="text-muted-foreground text-sm">Tiempo Entrenado</div>
+                        <div className="text-2xl font-bold text-theme-primary">1h 15m</div>
+                        <div className="text-theme-secondary text-sm">Tiempo Entrenado</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+30m</div>
@@ -369,7 +473,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -381,8 +485,8 @@ export default function DashboardPage() {
                         <Flame className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">485</div>
-                        <div className="text-muted-foreground text-sm">Calorías Quemadas</div>
+                        <div className="text-2xl font-bold text-theme-primary">485</div>
+                        <div className="text-theme-secondary text-sm">Calorías Quemadas</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+165</div>
@@ -390,7 +494,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow" role="gridcell">
+              <Card className="card-theme border-theme shadow-sm hover:shadow-md transition-shadow" role="gridcell">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -402,8 +506,8 @@ export default function DashboardPage() {
                         <Target className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-card-foreground">75%</div>
-                        <div className="text-muted-foreground text-sm">Objetivo Diario</div>
+                        <div className="text-2xl font-bold text-theme-primary">75%</div>
+                        <div className="text-theme-secondary text-sm">Objetivo Diario</div>
                       </div>
                     </div>
                     <div className="text-green-600 text-sm font-medium">+25%</div>
@@ -413,13 +517,21 @@ export default function DashboardPage() {
             </div>
           </section>
 
+          {/* Reservations Section */}
+          <section aria-labelledby="reservations-heading">
+            <h2 id="reservations-heading" className="text-2xl font-bold text-red-500 mb-6">
+              Mis Reservas
+            </h2>
+            <ReservationWidget userId={userId || undefined} />
+          </section>
+
           {/* Weekly Progress */}
           <section aria-labelledby="progress-heading">
             <h2 id="progress-heading" className="text-2xl font-bold text-red-500 mb-6">
               Progreso Semanal
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-card border-border shadow-sm">
+              <Card className="card-theme border-theme shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Activity className="w-5 h-5 text-red-600" />
@@ -429,17 +541,17 @@ export default function DashboardPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Entrenamientos completados</span>
+                      <span className="text-sm text-theme-secondary">Entrenamientos completados</span>
                       <span className="font-semibold">8/10</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
+                    <div className="w-full bg-theme-secondary/20 rounded-full h-2">
                       <div className="bg-red-600 h-2 rounded-full" style={{ width: "80%" }}></div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border shadow-sm">
+              <Card className="card-theme border-theme shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Award className="w-5 h-5 text-yellow-600" />
@@ -454,7 +566,7 @@ export default function DashboardPage() {
                       </div>
                       <div>
                         <p className="font-medium text-sm">Semana Consistente</p>
-                        <p className="text-xs text-muted-foreground">5 días seguidos entrenando</p>
+                        <p className="text-xs text-theme-secondary">5 días seguidos entrenando</p>
                       </div>
                     </div>
                   </div>

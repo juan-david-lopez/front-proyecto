@@ -20,39 +20,53 @@ const AccessibilityContext = createContext<AccessibilityContextType | undefined>
 
 const fontSizes: FontSize[] = ["small", "medium", "large", "extra-large"]
 const fontSizeToClass = {
-  small: "font-small",
-  medium: "font-medium",
-  large: "font-large",
-  "extra-large": "font-extra-large",
+  small: "text-sm",
+  medium: "text-base",
+  large: "text-lg",
+  "extra-large": "text-xl",
 }
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark")
   const [fontSize, setFontSizeState] = useState<FontSize>("medium")
+  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     console.log("[v0] AccessibilityProvider initializing...")
 
     // Load saved preferences from localStorage
-    const savedTheme = localStorage.getItem("fitzone-theme") as Theme
-    const savedFontSize = localStorage.getItem("fitzone-font-size") as FontSize
+    let savedTheme: Theme = "dark"
+    let savedFontSize: FontSize = "medium"
+    
+    try {
+      const storedTheme = localStorage.getItem("fitzone-theme") as Theme
+      const storedFontSize = localStorage.getItem("fitzone-font-size") as FontSize
 
-    console.log("[v0] Saved theme:", savedTheme, "Saved font size:", savedFontSize)
+      if (storedTheme && (storedTheme === "light" || storedTheme === "dark")) {
+        savedTheme = storedTheme
+      }
+      if (storedFontSize && fontSizes.includes(storedFontSize)) {
+        savedFontSize = storedFontSize
+      }
+    } catch (error) {
+      console.warn("[v0] Error accessing localStorage:", error)
+    }
 
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
-    if (savedFontSize && fontSizes.includes(savedFontSize)) {
-      setFontSizeState(savedFontSize)
-    }
+    console.log("[v0] Loading theme:", savedTheme, "font size:", savedFontSize)
+
+    // Update states
+    setTheme(savedTheme)
+    setFontSizeState(savedFontSize)
 
     // Apply initial theme and font size immediately
     document.documentElement.classList.remove("light", "dark")
-    document.documentElement.classList.add(savedTheme || "dark")
+    document.documentElement.classList.add(savedTheme)
 
-    const initialFontClass = fontSizeToClass[(savedFontSize || "medium") as keyof typeof fontSizeToClass]
-    document.documentElement.classList.remove("font-small", "font-medium", "font-large", "font-extra-large")
+    const initialFontClass = fontSizeToClass[savedFontSize]
+    document.documentElement.classList.remove("text-sm", "text-base", "text-lg", "text-xl")
     document.documentElement.classList.add(initialFontClass)
+    
+    setIsInitialized(true)
   }, [])
 
   useEffect(() => {
@@ -68,7 +82,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     console.log("[v0] Applying font size:", fontSize)
 
     // Apply font size to document
-    document.documentElement.classList.remove("font-small", "font-medium", "font-large", "font-extra-large")
+    document.documentElement.classList.remove("text-sm", "text-base", "text-lg", "text-xl")
     const fontClass = fontSizeToClass[fontSize as keyof typeof fontSizeToClass]
     console.log("[v0] Font class:", fontClass)
     document.documentElement.classList.add(fontClass)
@@ -76,10 +90,14 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, [fontSize])
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"))
+    console.log("[v0] Toggling theme from:", theme)
+    const newTheme = theme === "light" ? "dark" : "light"
+    console.log("[v0] New theme will be:", newTheme)
+    setTheme(newTheme)
   }
 
   const setFontSize = (size: FontSize) => {
+    console.log("[v0] Setting font size to:", size)
     setFontSizeState(size)
   }
 

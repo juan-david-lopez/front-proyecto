@@ -17,7 +17,7 @@ export function AccessibilityControls() {
     <div className="space-y-6">
       {/* Theme Toggle */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-foreground">Tema</h3>
+        <h3 className="text-lg font-semibold text-theme-primary">Tema</h3>
         <div className="flex gap-2">
           <Button
             variant={theme === "light" ? "default" : "outline"}
@@ -44,7 +44,7 @@ export function AccessibilityControls() {
 
       {/* Font Size Controls */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-foreground">Tamaño de Texto</h3>
+        <h3 className="text-lg font-semibold text-theme-primary">Tamaño de Texto</h3>
         <div className="grid grid-cols-2 gap-2">
           {fontSizes.map((size) => (
             <Button
@@ -63,9 +63,9 @@ export function AccessibilityControls() {
       </div>
 
       {/* Accessibility Info */}
-      <div className="p-4 bg-muted rounded-lg">
-        <h4 className="font-medium text-foreground mb-2">Información de Accesibilidad</h4>
-        <ul className="text-sm text-muted-foreground space-y-1">
+      <div className="p-4 bg-theme-secondary rounded-lg border border-theme">
+        <h4 className="font-medium text-theme-primary mb-2">Información de Accesibilidad</h4>
+        <ul className="text-sm text-theme-secondary space-y-1">
           <li>• Usa Tab para navegar entre elementos</li>
           <li>• Usa Enter o Espacio para activar botones</li>
           <li>• Usa Escape para cerrar modales</li>

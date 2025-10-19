@@ -1,15 +1,23 @@
 "use client"
 
-import type React from "react"
-
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Check, CreditCard } from "lucide-react"
-import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { BackButton } from "@/components/back-button"
+import { Check, Lock, Crown, Star, Users, Shield } from "lucide-react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 import { FitZoneLogo } from "@/components/fitzone-logo"
+import { useAuth } from "@/contexts/auth-context"
+import membershipService from "@/services/membershipService"
+import { MembershipType } from "@/types/membership"
+import { useToast } from "@/hooks/use-toast"
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
+import { StripePaymentForm } from '@/components/stripe-payment-form'
+
+// Inicializar Stripe con la clave pública
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
 const planData = {
   basico: {
@@ -40,7 +48,7 @@ const planData = {
     ],
   },
   elite: {
-    title: "VIP",
+    title: "ELITE",
     price: "$90,000",
     description: "El mejor valor para miembros comprometidos",
     benefits: [
@@ -56,374 +64,288 @@ const planData = {
 }
 
 export default function CheckoutPage() {
+  const { user, isLoading: authLoading, refreshUser } = useAuth()
+  const { success: showSuccess, error: showError } = useToast()
   const searchParams = useSearchParams()
-  const planType = (searchParams.get("plan") || "premium") as keyof typeof planData
-  const selectedPlan = planData[planType]
+  const router = useRouter()
+  const planId = searchParams.get("planId")
 
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-    cardName: "",
-    billingName: "",
-    billingEmail: "",
-    address: "",
-    city: "",
-    postalCode: "",
-  })
+  const [membershipPlan, setMembershipPlan] = useState<MembershipType | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+  const getDisplayName = (name: string) => {
+    switch (name) {
+      case 'BASIC': return 'Básico'
+      case 'PREMIUM': return 'Premium'
+      case 'ELITE': return 'ELITE'
+      default: return name
     }
   }
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.cardNumber || formData.cardNumber.length < 16) {
-      newErrors.cardNumber = "Número de tarjeta inválido"
-    }
-    if (!formData.expiryDate) {
-      newErrors.expiryDate = "Fecha de expiración requerida"
-    }
-    if (!formData.cvv || formData.cvv.length < 3) {
-      newErrors.cvv = "CVV inválido"
-    }
-    if (!formData.cardName.trim()) {
-      newErrors.cardName = "Nombre en la tarjeta requerido"
-    }
-    if (!formData.billingName.trim()) {
-      newErrors.billingName = "Nombre de facturación requerido"
-    }
-    if (!formData.billingEmail.includes("@")) {
-      newErrors.billingEmail = "Email inválido"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateForm()) {
-      // Procesar pago
-      console.log("Procesando pago...", { plan: planType, ...formData })
-      // Aquí iría la integración con el procesador de pagos
+  const getPlanIcon = (name: string) => {
+    switch (name) {
+      case 'BASIC': return <Users className="w-6 h-6" />
+      case 'PREMIUM': return <Star className="w-6 h-6" />
+      case 'ELITE': return <Crown className="w-6 h-6" />
+      default: return <Shield className="w-6 h-6" />
     }
   }
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "")
-    const matches = v.match(/\d{4,16}/g)
-    const match = (matches && matches[0]) || ""
-    const parts = []
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4))
-    }
-    if (parts.length) {
-      return parts.join(" ")
+  const getPlanFeatures = (membershipType: MembershipType) => {
+    const features = [
+      'Acceso al área de pesas',
+      'Máquinas cardiovasculares', 
+      'Vestuarios y duchas'
+    ]
+
+    if (membershipType.accessToAllLocation) {
+      features.push('Acceso a todas las sucursales')
     } else {
-      return v
+      features.push('Acceso a una sola sucursal')
     }
+
+    if (membershipType.groupClassesSessionsIncluded === -1) {
+      features.push('Clases grupales ilimitadas')
+    } else if (membershipType.groupClassesSessionsIncluded > 0) {
+      features.push(`${membershipType.groupClassesSessionsIncluded} sesiones grupales/mes`)
+    }
+
+    if (membershipType.personalTrainingIncluded > 0) {
+      features.push(`${membershipType.personalTrainingIncluded} entrenamientos personales/mes`)
+    }
+
+    if (membershipType.specializedClassesIncluded) {
+      features.push('Clases especializadas incluidas')
+    }
+
+    return features
+  }
+
+  useEffect(() => {
+    // Solo redirigir si definitivamente no hay usuario y no está cargando
+    if (!user && !authLoading) {
+      const currentUrl = '/checkout' + window.location.search
+      router.push('/login?redirect=' + encodeURIComponent(currentUrl))
+      return
+    }
+    
+    // Cargar el plan solo cuando tengamos usuario y planId
+    if (user && planId) {
+      loadMembershipPlan()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId, user, authLoading, router])
+
+  const loadMembershipPlan = async () => {
+    try {
+      setLoading(true)
+      const types = await membershipService.getMembershipTypes()
+      
+      if (!types || types.length === 0) {
+        console.warn('⚠️ No se obtuvieron tipos de membresía');
+        showError("Error", "No se pudieron cargar los planes de membresía. Intenta más tarde.")
+        return;
+      }
+      
+      const plan = types.find(t => t.idMembershipType === parseInt(planId!))
+      if (plan) {
+        setMembershipPlan(plan)
+      } else {
+        showError("Error", "Plan de membresía no encontrado")
+        window.location.href = '/membresias'
+      }
+    } catch (error) {
+      showError("Error", "Error al cargar el plan de membresía")
+      console.error('Error loading membership plan:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePaymentSuccess = async (paymentIntentId: string, receiptId?: string) => {
+    console.log('✅ Pago exitoso:', { paymentIntentId, receiptId })
+    
+    showSuccess(
+      "¡Pago exitoso!", 
+      `Tu membresía ${membershipPlan ? getDisplayName(membershipPlan.name) : ''} ha sido activada. Redirigiendo...`
+    )
+    
+    // Esperar más tiempo para que el backend procese la membresía
+    console.log('⏳ Esperando 3 segundos para procesamiento del backend...')
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    
+    // Recargar información del usuario para obtener la membresía actualizada
+    console.log('🔄 Recargando información del usuario desde backend...')
+    try {
+      await refreshUser()
+      console.log('✅ Usuario recargado desde backend')
+      
+      // Esperar un poco más para que el estado se propague al contexto
+      console.log('⏳ Esperando propagación del estado...')
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+    } catch (error) {
+      console.error('⚠️ Error recargando usuario:', error)
+      // Continuar de todos modos, el dashboard tiene botón de refresh
+    }
+    
+    // Redirigir al dashboard principal (no membresia, para que muestre el estado)
+    console.log('➡️ Redirigiendo al dashboard...')
+    router.push('/dashboard')
+  }
+
+  const handlePaymentError = (error: string) => {
+    console.error('❌ Error en el pago:', error)
+    showError("Error en el pago", error)
+  }
+
+  // Mostrar loading mientras auth está cargando
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b00] mx-auto mb-4"></div>
+          <p className="text-theme-secondary">Verificando autenticación...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff6b00] mx-auto mb-4"></div>
+          <p className="text-theme-secondary">Cargando información del plan...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!membershipPlan) {
+    return (
+      <div className="min-h-screen bg-theme-primary text-theme-primary flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Plan no encontrado</p>
+          <Button onClick={() => window.location.href = '/membresias'} className="bg-red-600 hover:bg-red-700">
+            Volver a planes
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-theme-primary text-theme-primary">
       {/* Header */}
-      <header className="border-b border-gray-800 p-4">
+      <header className="border-b border-theme p-4 bg-theme-primary/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2" aria-label="Volver al inicio">
-            <ArrowLeft className="w-5 h-5" />
-            <span>Volver</span>
-          </Link>
-          <FitZoneLogo />
+          <BackButton href="/membresias" label="Volver a planes" />
+          <FitZoneLogo 
+            size="lg" 
+            variant="light" 
+            href="/"
+          />
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto p-6">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Payment Form */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-3xl font-bold text-red-500 mb-2">FINALIZAR COMPRA</h1>
-              <p className="text-gray-400">Completa tu información para procesar el pago</p>
+              <h1 className="text-3xl font-bold text-[#ff6b00] mb-2">FINALIZAR COMPRA</h1>
+              <p className="text-theme-secondary">Completa tu información para procesar el pago de forma segura con Stripe</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Card Information */}
-              <section className="bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-semibold mb-6 flex items-center">
-                  <CreditCard className="w-5 h-5 mr-2" />
-                  Datos de tarjeta
-                </h2>
+            {/* Stripe Payment Form */}
+            <Elements stripe={stripePromise}>
+              <StripePaymentForm
+                membershipTypeId={membershipPlan.idMembershipType}
+                membershipTypeName={membershipPlan.name}
+                amount={membershipPlan.monthlyPrice}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+              />
+            </Elements>
 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="cardNumber" className="text-gray-300">
-                      Número de tarjeta
-                    </Label>
-                    <Input
-                      id="cardNumber"
-                      type="text"
-                      placeholder="1234 5678 9012 3456"
-                      value={formData.cardNumber}
-                      onChange={(e) => handleInputChange("cardNumber", formatCardNumber(e.target.value))}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
-                      maxLength={19}
-                      aria-describedby={errors.cardNumber ? "cardNumber-error" : undefined}
-                      aria-invalid={!!errors.cardNumber}
-                    />
-                    {errors.cardNumber && (
-                      <p id="cardNumber-error" className="text-red-500 text-sm mt-1" role="alert">
-                        {errors.cardNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="expiryDate" className="text-gray-300">
-                        Fecha de expiración
-                      </Label>
-                      <Input
-                        id="expiryDate"
-                        type="text"
-                        placeholder="MM/YY"
-                        value={formData.expiryDate}
-                        onChange={(e) => {
-                          let value = e.target.value.replace(/\D/g, "")
-                          if (value.length >= 2) {
-                            value = value.substring(0, 2) + "/" + value.substring(2, 4)
-                          }
-                          handleInputChange("expiryDate", value)
-                        }}
-                        className="bg-gray-800 border-gray-700 text-white mt-2"
-                        maxLength={5}
-                        aria-describedby={errors.expiryDate ? "expiryDate-error" : undefined}
-                        aria-invalid={!!errors.expiryDate}
-                      />
-                      {errors.expiryDate && (
-                        <p id="expiryDate-error" className="text-red-500 text-sm mt-1" role="alert">
-                          {errors.expiryDate}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <Label htmlFor="cvv" className="text-gray-300">
-                        CVV
-                      </Label>
-                      <Input
-                        id="cvv"
-                        type="text"
-                        placeholder="123"
-                        value={formData.cvv}
-                        onChange={(e) => handleInputChange("cvv", e.target.value.replace(/\D/g, ""))}
-                        className="bg-gray-800 border-gray-700 text-white mt-2"
-                        maxLength={4}
-                        aria-describedby={errors.cvv ? "cvv-error" : undefined}
-                        aria-invalid={!!errors.cvv}
-                      />
-                      {errors.cvv && (
-                        <p id="cvv-error" className="text-red-500 text-sm mt-1" role="alert">
-                          {errors.cvv}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="cardName" className="text-gray-300">
-                      Nombre en la tarjeta
-                    </Label>
-                    <Input
-                      id="cardName"
-                      type="text"
-                      placeholder="Juan Pérez"
-                      value={formData.cardName}
-                      onChange={(e) => handleInputChange("cardName", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
-                      aria-describedby={errors.cardName ? "cardName-error" : undefined}
-                      aria-invalid={!!errors.cardName}
-                    />
-                    {errors.cardName && (
-                      <p id="cardName-error" className="text-red-500 text-sm mt-1" role="alert">
-                        {errors.cardName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Test Cards Info */}
-                <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-                  <h3 className="font-semibold mb-2">Tarjetas de prueba</h3>
-                  <div className="text-sm text-gray-400 space-y-1">
-                    <p>
-                      <strong>Visa:</strong> 4242 4242 4242 4242
-                    </p>
-                    <p>
-                      <strong>Mastercard:</strong> 5555 5555 5555 4444
-                    </p>
-                    <p>
-                      <strong>AMEX:</strong> 3782 822463 10005
-                    </p>
-                    <p className="mt-2">
-                      Usa cualquier fecha futura, CVC aleatorio (ej. 123) y cualquier código postal
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              {/* Billing Information */}
-              <section className="bg-gray-900 p-6 rounded-lg">
-                <h2 className="text-xl font-semibold mb-6">Información de facturación</h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="billingName" className="text-gray-300">
-                      Nombre
-                    </Label>
-                    <Input
-                      id="billingName"
-                      type="text"
-                      placeholder="Tu nombre completo"
-                      value={formData.billingName}
-                      onChange={(e) => handleInputChange("billingName", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
-                      aria-describedby={errors.billingName ? "billingName-error" : undefined}
-                      aria-invalid={!!errors.billingName}
-                    />
-                    {errors.billingName && (
-                      <p id="billingName-error" className="text-red-500 text-sm mt-1" role="alert">
-                        {errors.billingName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="billingEmail" className="text-gray-300">
-                      Email
-                    </Label>
-                    <Input
-                      id="billingEmail"
-                      type="email"
-                      placeholder="tu@email.com"
-                      value={formData.billingEmail}
-                      onChange={(e) => handleInputChange("billingEmail", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
-                      aria-describedby={errors.billingEmail ? "billingEmail-error" : undefined}
-                      aria-invalid={!!errors.billingEmail}
-                    />
-                    {errors.billingEmail && (
-                      <p id="billingEmail-error" className="text-red-500 text-sm mt-1" role="alert">
-                        {errors.billingEmail}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="address" className="text-gray-300">
-                      Dirección
-                    </Label>
-                    <Input
-                      id="address"
-                      type="text"
-                      placeholder="Calle 123 #45-67"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
-                      className="bg-gray-800 border-gray-700 text-white mt-2"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="city" className="text-gray-300">
-                        Ciudad
-                      </Label>
-                      <Input
-                        id="city"
-                        type="text"
-                        placeholder="Bogotá"
-                        value={formData.city}
-                        onChange={(e) => handleInputChange("city", e.target.value)}
-                        className="bg-gray-800 border-gray-700 text-white mt-2"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="postalCode" className="text-gray-300">
-                        Código postal
-                      </Label>
-                      <Input
-                        id="postalCode"
-                        type="text"
-                        placeholder="110111"
-                        value={formData.postalCode}
-                        onChange={(e) => handleInputChange("postalCode", e.target.value)}
-                        className="bg-gray-800 border-gray-700 text-white mt-2"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Security Notice */}
-              <div className="text-center text-gray-400 text-sm">
-                Los pagos son procesados de forma segura mediante Stripe. No almacenamos la información de tu tarjeta.
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 text-lg"
-                  aria-label={`Pagar ${selectedPlan.price} por plan ${selectedPlan.title}`}
-                >
-                  PAGAR AHORA
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-red-600 text-red-600 hover:bg-red-600 hover:text-white py-4 bg-transparent"
-                  onClick={() => window.history.back()}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
+            {/* Cancel Button */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-theme text-theme-secondary hover:bg-theme-secondary/10"
+              onClick={() => router.back()}
+            >
+              Cancelar
+            </Button>
           </div>
 
           {/* Order Summary */}
           <div className="lg:sticky lg:top-6">
-            <div className="bg-gray-900 p-6 rounded-lg">
-              <h2 className="text-2xl font-bold text-red-500 mb-4 text-center">{selectedPlan.title}</h2>
-
-              <p className="text-gray-400 text-center mb-6">{selectedPlan.description}</p>
-
-              <div className="text-center mb-6">
-                <span className="text-4xl font-bold text-white">{selectedPlan.price}</span>
-                <span className="text-gray-400 ml-2">/mes</span>
-              </div>
-
-              <div className="space-y-3">
-                {selectedPlan.benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <Check className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">{benefit}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-gray-700">
-                <div className="flex justify-between items-center text-lg font-semibold">
-                  <span>Total:</span>
-                  <span className="text-red-500">{selectedPlan.price}</span>
+            <Card className="bg-gradient-to-br from-card to-card/50 border-border shadow-lg">
+              <CardHeader className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  {getPlanIcon(membershipPlan.name)}
+                  <Badge className="bg-[#ff6b00] text-white">Plan seleccionado</Badge>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">Facturación mensual • Cancela en cualquier momento</p>
-              </div>
-            </div>
+                <CardTitle className="text-2xl font-bold text-card-foreground mb-2">
+                  {getDisplayName(membershipPlan.name)}
+                </CardTitle>
+                <p className="text-muted-foreground">{membershipPlan.description}</p>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-[#ff6b00] mb-1">
+                    {formatPrice(membershipPlan.monthlyPrice)}
+                  </div>
+                  <span className="text-muted-foreground">/mes</span>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-card-foreground flex items-center gap-2">
+                    <Check className="w-5 h-5 text-green-500" />
+                    Beneficios incluidos:
+                  </h4>
+                  {getPlanFeatures(membershipPlan).map((benefit, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-[#ff6b00] rounded-full flex-shrink-0"></div>
+                      <span className="text-muted-foreground text-sm">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-6 border-t border-border">
+                  <div className="flex justify-between items-center text-lg font-semibold mb-2">
+                    <span className="text-card-foreground">Total mensual:</span>
+                    <span className="text-[#ff6b00]">{formatPrice(membershipPlan.monthlyPrice)}</span>
+                  </div>
+                  <p className="text-muted-foreground text-sm flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    Pago seguro procesado por Stripe • Cancela cuando quieras
+                  </p>
+                </div>
+
+                {/* Trust badges */}
+                <div className="pt-4 border-t border-border">
+                  <p className="text-xs text-muted-foreground text-center mb-3">Protegido por:</p>
+                  <div className="flex justify-center items-center gap-4 opacity-70">
+                    <svg className="h-6" viewBox="0 0 60 25" fill="currentColor">
+                      <path d="M59.64 14.28h-8.06c.19 1.93 1.6 2.55 3.2 2.55 1.64 0 2.96-.37 4.05-.95v3.32a8.33 8.33 0 0 1-4.56 1.1c-4.01 0-6.83-2.5-6.83-7.48 0-4.19 2.39-7.52 6.3-7.52 3.92 0 5.96 3.28 5.96 7.5 0 .4-.04 1.26-.06 1.48zm-5.92-5.62c-1.03 0-2.17.73-2.17 2.58h4.25c0-1.85-1.07-2.58-2.08-2.58zM40.95 20.3c-1.44 0-2.32-.6-2.9-1.04l-.02 4.63-4.12.87V5.57h3.76l.08 1.02a4.7 4.7 0 0 1 3.23-1.29c2.9 0 5.62 2.6 5.62 7.4 0 5.23-2.7 7.6-5.65 7.6zM40 8.95c-.95 0-1.54.34-1.97.81l.02 6.12c.4.44.98.78 1.95.78 1.52 0 2.54-1.65 2.54-3.87 0-2.15-1.04-3.84-2.54-3.84zM28.24 5.57h4.13v14.44h-4.13V5.57zm0-4.7L32.37 0v3.36l-4.13.88V.88zm-4.32 9.35v9.79H19.8V5.57h3.7l.12 1.22c1-1.77 3.07-1.41 3.62-1.22v3.79c-.52-.17-2.29-.43-3.32.86zm-8.55 4.72c0 2.43 2.6 1.68 3.12 1.46v3.36c-.55.3-1.54.54-2.89.54a4.15 4.15 0 0 1-4.27-4.24l.01-13.17 4.02-.86v3.54h3.14V9.1h-3.13v5.85zm-4.91.7c0 2.97-2.31 4.66-5.73 4.66a11.2 11.2 0 0 1-4.46-.93v-3.93c1.38.75 3.1 1.31 4.46 1.31.92 0 1.53-.24 1.53-1C6.26 13.77 0 14.51 0 9.95 0 7.04 2.28 5.3 5.62 5.3c1.36 0 2.72.2 4.09.75v3.88a9.23 9.23 0 0 0-4.1-1.06c-.86 0-1.44.25-1.44.9 0 1.85 6.29.97 6.29 5.88z"/>
+                    </svg>
+                    <div className="text-xs font-medium">256-bit SSL</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

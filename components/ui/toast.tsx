@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { X } from "lucide-react"
+import { X, CheckCircle, AlertTriangle, Info, XCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ToastProps {
@@ -20,29 +20,55 @@ export function Toast({ title, description, type = "info", onClose }: ToastProps
     return () => clearTimeout(timer)
   }, [onClose])
 
-  const typeStyles = {
-    success: "bg-green-500 border-green-600",
-    error: "bg-red-500 border-red-600",
-    warning: "bg-yellow-500 border-yellow-600",
-    info: "bg-blue-500 border-blue-600"
+  const typeConfig = {
+    success: {
+      icon: CheckCircle,
+      className: "bg-gradient-to-r from-green-500 to-emerald-600 border border-green-400/50",
+      iconColor: "text-green-100"
+    },
+    error: {
+      icon: XCircle,
+      className: "bg-gradient-to-r from-red-500 to-rose-600 border border-red-400/50",
+      iconColor: "text-red-100"
+    },
+    warning: {
+      icon: AlertTriangle,
+      className: "bg-gradient-to-r from-amber-500 to-orange-600 border border-amber-400/50",
+      iconColor: "text-amber-100"
+    },
+    info: {
+      icon: Info,
+      className: "bg-gradient-to-r from-blue-500 to-indigo-600 border border-blue-400/50",
+      iconColor: "text-blue-100"
+    }
   }
 
+  const config = typeConfig[type]
+  const Icon = config.icon
+
   return (
-    <div className={cn(
-      "fixed top-4 right-4 z-50 p-4 rounded-lg border text-white shadow-lg animate-in slide-in-from-top-2",
-      typeStyles[type]
-    )}>
-      <div className="flex items-start justify-between">
-        <div>
-          {title && <h4 className="font-semibold mb-1">{title}</h4>}
-          {description && <p className="text-sm opacity-90">{description}</p>}
+    <div 
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+      className={cn(
+        "fixed top-4 right-4 z-50 p-4 rounded-xl text-white shadow-2xl backdrop-blur-sm transition-all duration-300 ease-out animate-in slide-in-from-top-2 hover:shadow-3xl hover:scale-105 min-w-[320px] max-w-[480px]",
+        config.className
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <Icon className={cn("h-5 w-5 mt-0.5 flex-shrink-0", config.iconColor)} aria-hidden="true" />
+        <div className="flex-1">
+          {title && <h4 className="font-semibold mb-1 text-white text-base">{title}</h4>}
+          {description && <p className="text-sm text-white/90 leading-relaxed">{description}</p>}
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-4 opacity-70 hover:opacity-100"
+            aria-label="Cerrar notificación"
+            className="ml-2 p-2 rounded-full opacity-70 hover:opacity-100 hover:bg-white/20 transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         )}
       </div>
