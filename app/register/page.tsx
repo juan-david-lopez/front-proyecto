@@ -680,11 +680,11 @@ export default function RegisterPage() {
                   <div className="space-y-1">
                     <Label htmlFor="terms" className="text-sm text-theme-primary leading-relaxed">
                       Acepto los{" "}
-                      <Link href="/terms" className="text-red-500 hover:text-red-400">
+                      <Link href="/terminos" className="text-red-500 hover:text-red-400">
                         términos y condiciones
                       </Link>{" "}
                       y la{" "}
-                      <Link href="/privacy" className="text-red-500 hover:text-red-400">
+                      <Link href="/privacidad" className="text-red-500 hover:text-red-400">
                         política de privacidad
                       </Link>
                     </Label>
