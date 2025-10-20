@@ -431,33 +431,64 @@ class ReservationService {
       
       // Transform to AvailableSlot objects
       const slots: AvailableSlot[] = (response.data || []).map(item => {
-        // Parse datetime fields from backend
+        // Parse datetime fields from backend - try multiple possible field names
         let scheduledDate = '';
         let scheduledStartTime = '';
         let scheduledEndTime = '';
         
-        // Backend puede enviar start_datetime, startDatetime, o start_date
-        const startDateTime = item.start_datetime || item.startDatetime || item.start_date;
-        const endDateTime = item.end_datetime || item.endDatetime || item.end_date;
+        // Try different possible datetime field names from backend
+        const startDateTime = 
+          item.startDateTime || 
+          item.start_datetime || 
+          item.startDatetime || 
+          item.start_date ||
+          item.scheduledDate ||
+          item.scheduledStartTime;
+          
+        const endDateTime = 
+          item.endDateTime || 
+          item.end_datetime || 
+          item.endDatetime || 
+          item.end_date ||
+          item.scheduledEndTime;
         
+        // Parse start datetime
         if (startDateTime) {
           try {
             const startDate = new Date(startDateTime);
-            scheduledDate = startDate.toISOString().split('T')[0];
-            scheduledStartTime = startDate.toTimeString().slice(0, 5);
+            if (!isNaN(startDate.getTime())) {
+              scheduledDate = startDate.toISOString().split('T')[0];
+              scheduledStartTime = startDate.toTimeString().slice(0, 5);
+              console.log('✅ Parsed start datetime:', { startDateTime, scheduledDate, scheduledStartTime });
+            }
           } catch (e) {
-            console.warn('Error parsing start datetime:', startDateTime);
+            console.warn('Error parsing start datetime:', startDateTime, e);
           }
         }
         
+        // Parse end datetime
         if (endDateTime) {
           try {
             const endDate = new Date(endDateTime);
-            scheduledEndTime = endDate.toTimeString().slice(0, 5);
+            if (!isNaN(endDate.getTime())) {
+              scheduledEndTime = endDate.toTimeString().slice(0, 5);
+              console.log('✅ Parsed end datetime:', { endDateTime, scheduledEndTime });
+            }
           } catch (e) {
-            console.warn('Error parsing end datetime:', endDateTime);
+            console.warn('Error parsing end datetime:', endDateTime, e);
           }
         }
+        
+        // Get instructor info
+        const instructor = item.instructor || {
+          id: item.instructorId || item.instructor_id || 0,
+          firstName: item.instructorFirstName || 'Instructor',
+          lastName: item.instructorLastName || 'TBD',
+          email: '',
+          specialties: [],
+          experience: 0,
+          isAvailable: true,
+        };
         
         // Determinar si requiere pago (true si no es ELITE)
         const requiresPayment = item.requires_payment !== false;
@@ -469,9 +500,10 @@ class ReservationService {
           date: scheduledDate,
           startTime: scheduledStartTime,
           endTime: scheduledEndTime,
-          isAvailable: true,
-          remainingSpots: item.max_capacity ? item.max_capacity - (item.current_enrollment || 0) : 0,
+          isAvailable: item.isAvailable !== false,
+          remainingSpots: (item.maxCapacity || item.max_capacity) ? (item.maxCapacity || item.max_capacity) - (item.currentEnrollment || item.current_enrollment || 0) : 0,
           price: 15000, // Default price for group classes (COP)
+          instructor: instructor,
           // Preserve all fields for rendering
           ...item,
           // Add standard field names
@@ -481,22 +513,24 @@ class ReservationService {
           requiresPayment,
           groupClass: item.groupClass || {
             id: item.id || item.target_id,
-            name: item.class_name || 'Clase Grupal',
+            name: item.name || item.class_name || 'Clase Grupal',
             type: item.type || 'FUNCTIONAL',
             description: item.description || '',
-            instructorId: item.instructor_id,
-            locationId: item.location_id,
-            maxCapacity: item.max_capacity || 25,
-            currentEnrollment: item.current_enrollment || 0,
-            duration: 60,
+            instructorId: item.instructorId || item.instructor_id,
+            instructor: instructor,
+            locationId: item.locationId || item.location_id,
+            maxCapacity: item.maxCapacity || item.max_capacity || 25,
+            currentEnrollment: item.currentEnrollment || item.current_enrollment || 0,
+            duration: item.duration || 60,
             difficulty: 'INTERMEDIATE',
           }
         };
         
+        console.log('📊 Transformed slot:', slot);
         return slot;
       });
       
-      console.log('✅ [ReservationService] Transformed slots:', slots);
+      console.log('✅ [ReservationService] Total transformed slots:', slots.length, slots);
       return slots;
     } catch (error) {
       console.error('❌ Error getting available group classes:', error);
