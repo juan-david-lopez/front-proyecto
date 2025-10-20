@@ -88,6 +88,12 @@ export interface AvailableSlot {
   groupClass?: GroupClass;
   specializedSpace?: SpecializedSpace;
   price?: number;
+  // Additional fields for rendering compatibility
+  scheduledDate?: string;
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  requiresPayment?: boolean;
+  status?: ReservationStatus;
 }
 
 // Specialized Space interface

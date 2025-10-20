@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertCircle, Loader, Lock } from 'lucide-react';
+import { AlertCircle, Loader, Lock, CheckCircle } from 'lucide-react';
 import { Reservation } from '@/types/reservation';
 import { reservationService } from '@/services/reservationService';
 import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { useToast } from '@/hooks/use-toast';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -23,8 +24,10 @@ interface PaymentFormProps {
 function PaymentFormContent({ groupClassId, groupClass, price, onSuccess, onClose }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
+  const { success: showSuccess, error: showError } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,18 +59,25 @@ function PaymentFormContent({ groupClassId, groupClass, price, onSuccess, onClos
 
       console.log('Inscripcion exitosa:', response);
       
+      // Mostrar notificación de éxito
+      setSuccessMessage(`¡Pago exitoso! Ya estás inscrito en ${groupClass.groupClass?.name || 'la clase'}`);
+      showSuccess(
+        '¡Pago Exitoso!',
+        `Pago de $${price.toLocaleString('es-CO')} COP procesado correctamente. Ya estás inscrito en la clase.`
+      );
+      
       // Llamar al callback de exito
       onSuccess();
       
-      // Cerrar el modal despues de 1 segundo
+      // Cerrar el modal despues de 2 segundos
       setTimeout(() => {
         onClose();
-      }, 1000);
+      }, 2000);
     } catch (err: any) {
       console.error('Error en pago:', err);
-      setError(
-        err.message || 'Error procesando el pago. Intenta de nuevo.'
-      );
+      const errorMsg = err.message || 'Error procesando el pago. Intenta de nuevo.';
+      setError(errorMsg);
+      showError('Error en el pago', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -115,6 +125,16 @@ function PaymentFormContent({ groupClassId, groupClass, price, onSuccess, onClos
           <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
             <AlertCircle className="w-5 h-5" />
             <span className="text-sm">{error}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje de éxito */}
+      {successMessage && (
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <CheckCircle className="w-5 h-5" />
+            <span className="text-sm font-semibold">{successMessage}</span>
           </div>
         </div>
       )}

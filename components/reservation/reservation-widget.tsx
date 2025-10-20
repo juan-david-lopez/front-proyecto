@@ -125,7 +125,7 @@ export function ReservationWidget({ userId }: ReservationWidgetProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card className="bg-card border-border shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between text-gray-900 dark:text-white">
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5 text-red-600" />
               <span>Próximas Reservas</span>
@@ -148,19 +148,19 @@ export function ReservationWidget({ userId }: ReservationWidgetProps) {
                 return (
                   <div 
                     key={reservation.id} 
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="text-red-600">
                         {getActivityIcon(reservation)}
                       </div>
                       <div>
-                        <p className="font-medium text-sm">{getActivityName(reservation)}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-sm text-gray-900 dark:text-white">{getActivityName(reservation)}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(reservation.scheduledDate)} • {formatTime(reservation.scheduledStartTime, reservation.scheduledEndTime)}
                         </p>
                         {reservation.instructor && (
-                          <p className="text-xs text-blue-600 mt-1">
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                             <User className="w-3 h-3 inline mr-1" />
                             {reservation.instructor.firstName} {reservation.instructor.lastName}
                           </p>
@@ -174,9 +174,9 @@ export function ReservationWidget({ userId }: ReservationWidgetProps) {
                 );
               })
             ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p>No tienes reservas próximas</p>
+              <div className="text-center py-6 text-gray-600 dark:text-gray-400">
+                <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
+                <p className="text-gray-700 dark:text-gray-300">No tienes reservas próximas</p>
                 <Link href="/reservas">
                   <Button variant="outline" size="sm" className="mt-2">
                     Hacer una reserva
@@ -190,7 +190,7 @@ export function ReservationWidget({ userId }: ReservationWidgetProps) {
 
       <Card className="bg-card border-border shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+          <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-white">
             <Clock className="w-5 h-5 text-blue-600" />
             <span>Reservar Ahora</span>
           </CardTitle>

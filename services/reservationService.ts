@@ -420,15 +420,84 @@ class ReservationService {
   /**
    * Get available group classes as available slots (wrapper for compatibility)
    */
-  async getAvailableGroupClasses(): Promise<Reservation[]> {
+  async getAvailableGroupClasses(): Promise<AvailableSlot[]> {
     try {
       console.log('📋 [ReservationService] Fetching available group classes');
       
       // Llamar al endpoint del backend: GET /api/reservations/group-classes
-      const response = await this.request<ApiResponse<Reservation[]>>('/reservations/group-classes');
+      const response = await this.request<ApiResponse<any[]>>('/reservations/group-classes');
       
-      console.log('✅ [ReservationService] Available group classes:', response.data);
-      return response.data || [];
+      console.log('✅ [ReservationService] Raw group classes response:', response.data);
+      
+      // Transform to AvailableSlot objects
+      const slots: AvailableSlot[] = (response.data || []).map(item => {
+        // Parse datetime fields from backend
+        let scheduledDate = '';
+        let scheduledStartTime = '';
+        let scheduledEndTime = '';
+        
+        // Backend puede enviar start_datetime, startDatetime, o start_date
+        const startDateTime = item.start_datetime || item.startDatetime || item.start_date;
+        const endDateTime = item.end_datetime || item.endDatetime || item.end_date;
+        
+        if (startDateTime) {
+          try {
+            const startDate = new Date(startDateTime);
+            scheduledDate = startDate.toISOString().split('T')[0];
+            scheduledStartTime = startDate.toTimeString().slice(0, 5);
+          } catch (e) {
+            console.warn('Error parsing start datetime:', startDateTime);
+          }
+        }
+        
+        if (endDateTime) {
+          try {
+            const endDate = new Date(endDateTime);
+            scheduledEndTime = endDate.toTimeString().slice(0, 5);
+          } catch (e) {
+            console.warn('Error parsing end datetime:', endDateTime);
+          }
+        }
+        
+        // Determinar si requiere pago (true si no es ELITE)
+        const requiresPayment = item.requires_payment !== false;
+        
+        // Construir objeto AvailableSlot
+        const slot: AvailableSlot & any = {
+          id: (item.id || item.target_id).toString(),
+          type: ReservationType.GROUP_CLASS,
+          date: scheduledDate,
+          startTime: scheduledStartTime,
+          endTime: scheduledEndTime,
+          isAvailable: true,
+          remainingSpots: item.max_capacity ? item.max_capacity - (item.current_enrollment || 0) : 0,
+          price: 15000, // Default price for group classes (COP)
+          // Preserve all fields for rendering
+          ...item,
+          // Add standard field names
+          scheduledDate,
+          scheduledStartTime,
+          scheduledEndTime,
+          requiresPayment,
+          groupClass: item.groupClass || {
+            id: item.id || item.target_id,
+            name: item.class_name || 'Clase Grupal',
+            type: item.type || 'FUNCTIONAL',
+            description: item.description || '',
+            instructorId: item.instructor_id,
+            locationId: item.location_id,
+            maxCapacity: item.max_capacity || 25,
+            currentEnrollment: item.current_enrollment || 0,
+            duration: 60,
+            difficulty: 'INTERMEDIATE',
+          }
+        };
+        
+        return slot;
+      });
+      
+      console.log('✅ [ReservationService] Transformed slots:', slots);
+      return slots;
     } catch (error) {
       console.error('❌ Error getting available group classes:', error);
       return [];

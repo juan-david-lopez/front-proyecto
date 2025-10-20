@@ -146,17 +146,17 @@ export function MyReservationCard({
               )}
             </div>
             
-            <CardTitle className="text-lg text-gray-900">
+            <CardTitle className="text-lg text-gray-900 dark:text-white">
               {getActivityName()}
             </CardTitle>
             
             {getActivitySubtitle() && (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                 {getActivitySubtitle()}
               </p>
             )}
             
-            <CardDescription className="flex flex-wrap items-center gap-3 mt-2 text-sm">
+            <CardDescription className="flex flex-wrap items-center gap-3 mt-2 text-sm text-gray-700 dark:text-gray-300">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 {formatDate(reservation.scheduledDate)}
@@ -182,30 +182,30 @@ export function MyReservationCard({
       <CardContent className="pt-0">
         <div className="space-y-3">
           {reservation.instructor && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+            <div className="flex items-center gap-2 text-sm bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
               <User className="w-4 h-4 text-gray-500" />
-              <span className="font-medium">Instructor:</span> 
-              {reservation.instructor.firstName} {reservation.instructor.lastName}
+              <span className="font-medium text-gray-700 dark:text-gray-200">Instructor:</span> 
+              <span className="text-gray-700 dark:text-gray-300">{reservation.instructor.firstName} {reservation.instructor.lastName}</span>
             </div>
           )}
           
           {reservation.locationId && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 rounded-lg p-2">
+            <div className="flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-900/30 rounded-lg p-2">
               <MapPin className="w-4 h-4 text-blue-500" />
-              <span className="font-medium">Ubicación:</span> 
-              ID: {reservation.locationId}
+              <span className="font-medium text-blue-700 dark:text-blue-300">Ubicación:</span> 
+              <span className="text-blue-700 dark:text-blue-300">ID: {reservation.locationId}</span>
             </div>
           )}
           
           {reservation.notes && (
-            <div className="text-sm text-gray-600 bg-yellow-50 border-l-4 border-yellow-200 p-3 rounded-r-lg">
-              <strong>Notas:</strong> {reservation.notes}
+            <div className="text-sm bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-200 dark:border-yellow-700 p-3 rounded-r-lg">
+              <strong className="text-yellow-800 dark:text-yellow-300">Notas:</strong> <span className="text-yellow-800 dark:text-yellow-300">{reservation.notes}</span>
             </div>
           )}
           
           {reservation.cancelReason && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">
-              <strong>Motivo de cancelación:</strong> {reservation.cancelReason}
+            <div className="text-sm bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-2">
+              <strong className="text-red-700 dark:text-red-300">Motivo de cancelación:</strong> <span className="text-red-700 dark:text-red-300">{reservation.cancelReason}</span>
             </div>
           )}
           

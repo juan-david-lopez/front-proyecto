@@ -269,7 +269,17 @@ export default function ReservationsPage() {
       // El pago fue exitoso en el componente PaymentModal
       setShowPaymentModal(false);
       setSelectedSlotForPayment(null);
-      // Los datos se recargarán cuando se cierre el modal
+      
+      // Recargar datos de clases grupales y mis reservas
+      try {
+        await Promise.all([
+          loadGroupClasses(),
+          loadMyReservations()
+        ]);
+        console.log('✅ Datos recargados después del pago exitoso');
+      } catch (error) {
+        console.error('Error recargando datos después del pago:', error);
+      }
     }
   };
 
@@ -507,16 +517,16 @@ export default function ReservationsPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {groupClasses.length > 0 ? (
-                      groupClasses.map((reservation) => (
-                        <div key={`gc-${reservation.id}`} className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow">
+                      groupClasses.map((slot) => (
+                        <div key={`gc-${slot.id}`} className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow">
                           <div className="p-6">
                             {/* Encabezado de la clase */}
                             <div className="mb-4">
                               <h3 className="text-xl font-bold text-black dark:text-white mb-1">
-                                {reservation.groupClass?.name || 'Clase Grupal'}
+                                {slot.groupClass?.name || 'Clase Grupal'}
                               </h3>
                               <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Instructor: {reservation.instructor?.firstName} {reservation.instructor?.lastName}
+                                Instructor: {slot.groupClass?.instructor?.firstName} {slot.groupClass?.instructor?.lastName}
                               </p>
                             </div>
 
@@ -525,30 +535,30 @@ export default function ReservationsPage() {
                               <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="w-4 h-4 text-blue-500" />
                                 <span className="text-slate-700 dark:text-slate-300">
-                                  {new Date(reservation.scheduledDate).toLocaleDateString('es-ES', { 
+                                  {slot.scheduledDate ? new Date(slot.scheduledDate).toLocaleDateString('es-ES', { 
                                     weekday: 'long',
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric'
-                                  })}
+                                  }) : 'Fecha no disponible'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 text-sm">
                                 <Clock className="w-4 h-4 text-green-500" />
                                 <span className="text-slate-700 dark:text-slate-300">
-                                  {reservation.scheduledStartTime} - {reservation.scheduledEndTime}
+                                  {slot.scheduledStartTime || '--'} - {slot.scheduledEndTime || '--'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 text-sm">
                                 <Users className="w-4 h-4 text-purple-500" />
                                 <span className="text-slate-700 dark:text-slate-300">
-                                  Cupo disponible
+                                  {slot.remainingSpots || 0} cupos disponibles
                                 </span>
                               </div>
                             </div>
 
                             {/* Precio (si aplica) */}
-                            {reservation.requiresPayment && (
+                            {slot.requiresPayment && (
                               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                                 <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
                                   ${(15000).toLocaleString('es-CO')} COP
@@ -558,11 +568,11 @@ export default function ReservationsPage() {
 
                             {/* Botón de reserva */}
                             <button
-                              onClick={() => handleReservationWithLoading(reservation.id)}
-                              disabled={reservingSlot === reservation.id}
+                              onClick={() => handleReservationWithLoading(slot)}
+                              disabled={reservingSlot === parseInt(slot.id)}
                               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
-                              {reservingSlot === reservation.id ? (
+                              {reservingSlot === parseInt(slot.id) ? (
                                 <>
                                   <Loader className="w-4 h-4 animate-spin" />
                                   Procesando...
@@ -570,7 +580,7 @@ export default function ReservationsPage() {
                               ) : (
                                 <>
                                   <Plus className="w-4 h-4" />
-                                  {reservation.requiresPayment ? 'Pagar y Unirse' : 'Unirse Gratis'}
+                                  {slot.requiresPayment ? 'Pagar y Unirse' : 'Unirse Gratis'}
                                 </>
                               )}
                             </button>
