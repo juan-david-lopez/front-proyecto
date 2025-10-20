@@ -310,30 +310,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    console.log("[AuthContext] Cerrando sesión...")
+    console.log("[AuthContext] 🔓 Iniciando cierre de sesión seguro...")
     
-    // Limpiar datos del servicio de autenticación
-    authService.clearAuth()
-    
-    // Limpiar completamente todos los datos de autenticación y sesión
-    forceCompleteLogout()
-    
-    // Limpiar específicamente los datos de formularios de login
-    clearLoginFormData()
-    
-    // Limpiar estado de la aplicación
-    setUser(null)
-    
-    console.log("[AuthContext] Sesión cerrada correctamente")
-    
-    // Redirigir al inicio
-    router.push("/")
-    
-    // Opcional: Recargar la página para asegurar limpieza completa
-    // Esto garantiza que no queden datos en memoria del navegador
-    setTimeout(() => {
-      window.location.reload()
-    }, 100)
+    try {
+      // 1️⃣ PASO 1: Limpiar tokens y datos de autenticación
+      console.log("[AuthContext] Paso 1: Limpiando tokens...")
+      authService.clearAuth()
+      
+      // 2️⃣ PASO 2: Limpiar completamente localStorage y sessionStorage
+      console.log("[AuthContext] Paso 2: Limpiando localStorage y sessionStorage...")
+      forceCompleteLogout()
+      
+      // 3️⃣ PASO 3: Limpiar específicamente formularios de login
+      console.log("[AuthContext] Paso 3: Limpiando datos de formulario...")
+      clearLoginFormData()
+      
+      // 4️⃣ PASO 4: Limpiar estado de React
+      console.log("[AuthContext] Paso 4: Limpiando estado...")
+      setUser(null)
+      
+      // 5️⃣ PASO 5: Limpiar caché de HTTP
+      if ('caches' in window) {
+        caches.keys().then(cacheNames => {
+          cacheNames.forEach(cacheName => {
+            caches.delete(cacheName)
+          })
+        }).catch(e => console.warn('No se pudo limpiar caché:', e))
+      }
+      
+      console.log("[AuthContext] ✅ Sesión cerrada correctamente")
+      
+      // 6️⃣ PASO 6: Redirigir a login de forma segura
+      router.push("/login")
+      
+      // 7️⃣ PASO 7: Recargar página después de pequeño delay para limpiar memoria
+      setTimeout(() => {
+        // Reemplazar el estado del historial para que el botón atrás no vuelva a la página autenticada
+        window.history.replaceState(null, '', '/login')
+        
+        // Recargar sin caché usando no-cache headers
+        window.location.href = '/login?logout=true'
+      }, 500)
+      
+    } catch (error) {
+      console.error("[AuthContext] ❌ Error durante logout:", error)
+      
+      // En caso de error, forzar limpieza drástica
+      try {
+        localStorage.clear()
+        sessionStorage.clear()
+        setUser(null)
+        window.location.href = '/login'
+      } catch (e) {
+        console.error("[AuthContext] Error crítico:", e)
+      }
+    }
   }
 
   const updateUser = (userData: Partial<User>) => {
