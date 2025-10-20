@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { BackButton } from '@/components/back-button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Users, Dumbbell, Star, Filter, Search, ArrowRight, CheckCircle, XCircle, Timer, Award, Target } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Dumbbell, Star, Filter, Search, ArrowRight, CheckCircle, XCircle, Timer, Award, Target, Plus, Loader } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import {
   Reservation,
@@ -96,12 +96,9 @@ export default function ReservationsPage() {
   const loadGroupClasses = async () => {
     try {
       setState(prev => ({ ...prev, loading: true }));
-      const slots = await reservationService.getGroupClassesSchedule(
-        state.selectedDate,
-        state.selectedLocation,
-        selectedClassType === 'all-types' ? undefined : selectedClassType
-      );
-      setGroupClasses(slots);
+      // Cargar TODAS las clases grupales disponibles del backend
+      const classes = await reservationService.getAvailableGroupClasses();
+      setGroupClasses(classes);
       setState(prev => ({ ...prev, loading: false }));
     } catch (error) {
       console.error('Error loading group classes:', error);
@@ -510,13 +507,75 @@ export default function ReservationsPage() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {groupClasses.length > 0 ? (
-                      groupClasses.map((slot) => (
-                        <AvailabilityCard 
-                          key={`${slot.groupClass?.id || 'gc'}-${slot.startTime}`} 
-                          slot={slot} 
-                          onReserve={handleReservationWithLoading}
-                          isReserving={reservingSlot === slot.groupClass?.id}
-                        />
+                      groupClasses.map((reservation) => (
+                        <div key={`gc-${reservation.id}`} className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-shadow">
+                          <div className="p-6">
+                            {/* Encabezado de la clase */}
+                            <div className="mb-4">
+                              <h3 className="text-xl font-bold text-black dark:text-white mb-1">
+                                {reservation.groupClass?.name || 'Clase Grupal'}
+                              </h3>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Instructor: {reservation.instructor?.firstName} {reservation.instructor?.lastName}
+                              </p>
+                            </div>
+
+                            {/* Detalles */}
+                            <div className="space-y-3 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                              <div className="flex items-center gap-2 text-sm">
+                                <Calendar className="w-4 h-4 text-blue-500" />
+                                <span className="text-slate-700 dark:text-slate-300">
+                                  {new Date(reservation.scheduledDate).toLocaleDateString('es-ES', { 
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Clock className="w-4 h-4 text-green-500" />
+                                <span className="text-slate-700 dark:text-slate-300">
+                                  {reservation.scheduledStartTime} - {reservation.scheduledEndTime}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Users className="w-4 h-4 text-purple-500" />
+                                <span className="text-slate-700 dark:text-slate-300">
+                                  Cupo disponible
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Precio (si aplica) */}
+                            {reservation.requiresPayment && (
+                              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <p className="text-sm font-semibold text-blue-900 dark:text-blue-200">
+                                  ${(15000).toLocaleString('es-CO')} COP
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Botón de reserva */}
+                            <button
+                              onClick={() => handleReservationWithLoading(reservation.id)}
+                              disabled={reservingSlot === reservation.id}
+                              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                            >
+                              {reservingSlot === reservation.id ? (
+                                <>
+                                  <Loader className="w-4 h-4 animate-spin" />
+                                  Procesando...
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-4 h-4" />
+                                  {reservation.requiresPayment ? 'Pagar y Unirse' : 'Unirse Gratis'}
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       ))
                     ) : (
                       <div className="col-span-full text-center py-12">
