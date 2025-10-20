@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { AccessibilityControls } from "@/components/accessibility-controls"
 import { AuthGuard } from "@/components/auth-guard"
 import { BackButton } from "@/components/back-button"
-import { User, Lock, Bell, Shield, Globe, Clock, Ruler } from "lucide-react"
+import { User, Lock, Bell, Shield, Globe, Clock, Ruler, Check } from "lucide-react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 

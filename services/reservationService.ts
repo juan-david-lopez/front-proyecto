@@ -187,6 +187,32 @@ class ReservationService {
   }
 
   /**
+   * Join a group class (simplified reservation creation)
+   */
+  async joinGroupClass(classId: number): Promise<Reservation> {
+    // For now, just call createReservation with minimal data
+    // The backend should handle the defaults
+    const request = {
+      type: ReservationType.GROUP_CLASS,
+      groupClassId: classId,
+      scheduledDate: new Date().toISOString().split('T')[0],
+      scheduledStartTime: '00:00',
+      scheduledEndTime: '01:00',
+      locationId: 1, // Default location ID
+    } as CreateReservationRequest;
+    return this.createReservation(request);
+  }
+
+  /**
+   * Join a group class with payment
+   */
+  async joinGroupClassWithPayment(classId: number, paymentMethodId: string): Promise<Reservation> {
+    // This would typically process a payment and then create the reservation
+    // For now, just create the reservation
+    return this.joinGroupClass(classId);
+  }
+
+  /**
    * Get user's reservations with filters
    */
   async getMyReservations(filters?: ReservationFilters): Promise<Reservation[]> {
@@ -365,6 +391,37 @@ class ReservationService {
       startDate: today.toISOString().split('T')[0],
       endDate: nextWeek.toISOString().split('T')[0],
     });
+  }
+
+  /**
+   * Get available group classes as available slots (wrapper for compatibility)
+   */
+  async getAvailableGroupClasses(): Promise<Reservation[]> {
+    try {
+      // Get today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Call getGroupClassesSchedule for today
+      const slots = await this.getGroupClassesSchedule(today.toISOString().split('T')[0]);
+
+      // Convert AvailableSlots to pseudo-Reservations for display
+      return slots.map((slot, idx) => ({
+        id: parseInt(slot.id) || idx,
+        userId: 0,
+        type: ReservationType.GROUP_CLASS,
+        status: ReservationStatus.ACTIVE,
+        reservationDate: new Date().toISOString(),
+        scheduledDate: slot.date,
+        scheduledStartTime: slot.startTime,
+        scheduledEndTime: slot.endTime,
+        groupClass: slot.groupClass,
+        instructor: slot.instructor,
+      } as any));
+    } catch (error) {
+      console.error('Error getting available group classes:', error);
+      return [];
+    }
   }
 
   // ---------------------------

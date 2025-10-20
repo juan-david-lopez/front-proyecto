@@ -53,6 +53,9 @@ export interface UserResponse {
   mainLocationId?: number;
   membershipType?: string | null; // Añadido para reflejar la membresía activa
   avatar?: string; // Añadido para foto de perfil
+  phone?: string;
+  address?: string;
+  birthDate?: string;
 }
 
 export interface ApiResponse<T = any> {

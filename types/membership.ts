@@ -85,6 +85,9 @@ export interface MembershipDetailsResponse {
   status?: string;                  // Estado: ACTIVE, EXPIRED, SUSPENDED
   message: string;                  // Mensaje descriptivo del estado
   needsLocation: boolean;           // true = debe asignar ubicación antes de comprar
+  // Alias para compatibilidad
+  id?: number;                      // Alias de membershipId
+  type?: MembershipType;            // Detalles completos del tipo de membresía (opcional)
 }
 
 /**

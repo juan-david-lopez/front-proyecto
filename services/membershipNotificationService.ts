@@ -5,7 +5,7 @@ import {
   NotificationPriority,
   CreateNotificationRequest,
   UpdateNotificationRequest,
-} from '@/types/membership';
+} from '@/types/notification';
 
 interface ApiResponse<T = any> {
   success: boolean;

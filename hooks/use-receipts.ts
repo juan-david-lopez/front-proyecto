@@ -73,9 +73,7 @@ export function useReceipts(options: UseReceiptsOptions = {}): UseReceiptsReturn
       setLoading(true);
       setError(null);
       
-      const data = filters
-        ? await receiptService.searchReceipts({ ...filters, userId })
-        : await receiptService.getReceiptsByUser(userId);
+      const data = await receiptService.getUserReceipts(userId, filters);
       
       setReceipts(data);
     } catch (err) {
@@ -138,9 +136,7 @@ export function useReceipts(options: UseReceiptsOptions = {}): UseReceiptsReturn
       setError(null);
       
       const [receiptsData, transactionsData, statsData] = await Promise.all([
-        filters
-          ? receiptService.searchReceipts({ ...filters, userId })
-          : receiptService.getReceiptsByUser(userId),
+        receiptService.getUserReceipts(userId, filters),
         receiptService.getTransactionSummaries(userId),
         receiptService.getPaymentStats(userId)
       ]);
@@ -220,10 +216,12 @@ export function useReceipts(options: UseReceiptsOptions = {}): UseReceiptsReturn
       setLoading(true);
       setError(null);
       
-      const results = await receiptService.searchReceipts({
-        ...searchFilters,
-        userId: userId || searchFilters.userId
-      });
+      const targetUserId = userId || searchFilters.userId;
+      if (!targetUserId) {
+        throw new Error('Se requiere userId para buscar recibos');
+      }
+      
+      const results = await receiptService.getUserReceipts(targetUserId, searchFilters);
       
       setReceipts(results);
       return results;

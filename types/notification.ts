@@ -134,3 +134,35 @@ export interface NotificationOperationResponse {
   affectedCount?: number;
   error?: string;
 }
+
+/**
+ * Request para crear notificaciones
+ */
+export interface CreateNotificationRequest {
+  userId: number;
+  type: NotificationType;
+  category: NotificationCategory;
+  priority: NotificationPriority;
+  title: string;
+  message: string;
+  actionUrl?: string;
+  actionLabel?: string;
+  metadata?: Record<string, any>;
+  expiresAt?: string;
+}
+
+/**
+ * Request para actualizar notificaciones
+ */
+export interface UpdateNotificationRequest {
+  type?: NotificationType;
+  category?: NotificationCategory;
+  priority?: NotificationPriority;
+  title?: string;
+  message?: string;
+  read?: boolean;
+  actionUrl?: string;
+  actionLabel?: string;
+  metadata?: Record<string, any>;
+  expiresAt?: string;
+}

@@ -15,7 +15,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
 import { membershipManagementService } from "@/services/membershipManagementService"
 import { membershipService } from "@/services/membershipService"
-import { MembershipInfo, MembershipTypeName } from "@/types/membership"
+import { MembershipDetailsResponse, MembershipTypeName } from "@/types/membership"
 import { userService } from "@/services/userService"
 import { useToast } from "@/hooks/use-toast"
 
@@ -24,7 +24,7 @@ export default function RenewMembershipPage() {
   const { success: showSuccess, error: showError } = useToast()
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-  const [membership, setMembership] = useState<MembershipInfo | null>(null)
+  const [membership, setMembership] = useState<MembershipDetailsResponse | null>(null)
   const [userId, setUserId] = useState<number | null>(null)
   const [autoRenewal, setAutoRenewal] = useState(false)
 
@@ -48,7 +48,8 @@ export default function RenewMembershipPage() {
 
       const membershipData = await membershipManagementService.getMembershipDetails(userIdNumber)
       setMembership(membershipData)
-      setAutoRenewal(membershipData.autoRenewal || false)
+      // autoRenewal no existe en MembershipDetailsResponse, iniciar con false
+      setAutoRenewal(false)
     } catch (error) {
       console.error('Error loading membership:', error)
       showError("Error", "No se pudo cargar la información de tu membresía")
