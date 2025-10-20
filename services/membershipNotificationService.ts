@@ -114,7 +114,7 @@ class MembershipNotificationService {
    */
   async markAsRead(notificationId: string): Promise<boolean> {
     try {
-      await this.request(`/api/v1/notifications/${notificationId}/read`, {
+      await this.request(`/v1/notifications/${notificationId}/read`, {
         method: 'PATCH',
       });
       return true;
@@ -129,7 +129,7 @@ class MembershipNotificationService {
    */
   async markAllAsRead(userId: number): Promise<boolean> {
     try {
-      await this.request(`/api/v1/users/${userId}/notifications/read-all`, {
+      await this.request(`/v1/users/${userId}/notifications/read-all`, {
         method: 'PATCH',
       });
       return true;
@@ -145,7 +145,7 @@ class MembershipNotificationService {
   async createNotification(request: CreateNotificationRequest): Promise<MembershipNotification | null> {
     try {
       const response = await this.request<ApiResponse<MembershipNotification>>(
-        '/api/v1/notifications',
+        '/v1/notifications',
         {
           method: 'POST',
           body: JSON.stringify(request),
@@ -166,7 +166,7 @@ class MembershipNotificationService {
     request: UpdateNotificationRequest
   ): Promise<boolean> {
     try {
-      await this.request(`/api/v1/notifications/${notificationId}`, {
+      await this.request(`/v1/notifications/${notificationId}`, {
         method: 'PATCH',
         body: JSON.stringify(request),
       });
@@ -182,7 +182,7 @@ class MembershipNotificationService {
    */
   async deleteNotification(notificationId: string): Promise<boolean> {
     try {
-      await this.request(`/api/v1/notifications/${notificationId}`, {
+      await this.request(`/v1/notifications/${notificationId}`, {
         method: 'DELETE',
       });
       return true;
@@ -197,7 +197,7 @@ class MembershipNotificationService {
    */
   async clearAllNotifications(userId: number): Promise<boolean> {
     try {
-      await this.request(`/api/v1/users/${userId}/notifications`, {
+      await this.request(`/v1/users/${userId}/notifications`, {
         method: 'DELETE',
       });
       return true;
@@ -232,7 +232,7 @@ class MembershipNotificationService {
   async getNotificationPreferences(userId: number): Promise<any> {
     try {
       const response = await this.request<ApiResponse<any>>(
-        `/api/v1/users/${userId}/notification-preferences`
+        `/v1/users/${userId}/notification-preferences`
       );
       return response.data || {
         emailEnabled: true,

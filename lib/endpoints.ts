@@ -1,9 +1,7 @@
 /**
- * MAPEO CENTRALIZADO DE ENDPOINTS
- * Asegura que TODOS los endpoints apunten correctamente a Render con /api
- * 
- * REGLA: Si el endpoint ya tiene /api o /api/v1, NO se agrega nuevamente
- * Si el endpoint NO tiene /api, se agrega automáticamente
+ * MAPEO CENTRALIZADO DE ENDPOINTS - FITZONE
+ * IMPORTANTE: API_CONFIG.BASE_URL = https://repositoriodesplieguefitzone.onrender.com/api
+ * Todos los endpoints YA incluyen /api en su definición
  */
 
 import { API_CONFIG } from './api-config';
@@ -17,7 +15,7 @@ export const AUTH_ENDPOINTS = {
   VERIFY_OTP: '/auth/verify-otp',
   RESEND_OTP: '/auth/resend-otp',
   FORGOT_PASSWORD: '/auth/forgot-password',
-  REGISTER: '/auth/register',
+  SEND_REGISTRATION_OTP: '/auth/send-registration-otp',
   VERIFY_REGISTRATION_OTP: '/auth/verify-registration-otp',
   RESEND_REGISTRATION_OTP: '/auth/resend-registration-otp',
 } as const;
@@ -26,12 +24,13 @@ export const AUTH_ENDPOINTS = {
 // MEMBERSHIP ENDPOINTS
 // ============================================
 export const MEMBERSHIP_ENDPOINTS = {
-  GET_TYPES: '/memberships/types',
-  GET_TYPE_BY_ID: (id: string) => `/memberships/types/${id}`,
-  GET_TYPE_BY_NAME: (name: string) => `/memberships/types/by-name?name=${name}`,
+  GET_TYPES: '/membership-types',
+  GET_TYPE_BY_ID: (id: string) => `/membership-types/${id}`,
+  GET_TYPE_BY_NAME: (name: string) => `/membership-types/by-name?name=${name}`,
   GET_MY_STATUS: '/memberships/my-status',
   GET_STATUS: (userId: number) => `/memberships/status/${userId}`,
   GET_DETAILS: (userId: number) => `/memberships/details/${userId}`,
+  GET_BY_ID: (userId: number) => `/memberships/${userId}`,
   CREATE: '/memberships/create',
   CREATE_PAYMENT_INTENT: '/memberships/create-payment-intent',
   PROCESS_PAYMENT: '/memberships/process-payment',
@@ -55,95 +54,95 @@ export const USER_ENDPOINTS = {
 } as const;
 
 // ============================================
-// LOCATION ENDPOINTS (Ya incluyen /api)
+// LOCATION ENDPOINTS
 // ============================================
 export const LOCATION_ENDPOINTS = {
-  GET_ALL: '/api/locations',
-  GET_BY_ID: (id: number) => `/api/locations/${id}`,
-  GET_BY_NAME: (name: string) => `/api/locations/by-name?name=${name}`,
-  GET_BY_ADDRESS: (address: string) => `/api/locations/by-address?address=${address}`,
-  GET_BY_PHONE: (phone: string) => `/api/locations/by-phone?phone=${phone}`,
-  CREATE: '/api/locations',
-  UPDATE: (id: number) => `/api/locations/${id}`,
-  DELETE: (id: number) => `/api/locations/${id}`,
-  DEACTIVATE: (id: number) => `/api/locations/${id}/deactivate`,
+  GET_ALL: '/locations',
+  GET_BY_ID: (id: number) => `/locations/${id}`,
+  GET_BY_NAME: (name: string) => `/locations/by-name?name=${name}`,
+  GET_BY_ADDRESS: (address: string) => `/locations/by-address?address=${address}`,
+  GET_BY_PHONE: (phone: string) => `/locations/by-phone?phone=${phone}`,
+  CREATE: '/locations',
+  UPDATE: (id: number) => `/locations/${id}`,
+  DELETE: (id: number) => `/locations/${id}`,
+  DEACTIVATE: (id: number) => `/locations/${id}/deactivate`,
 } as const;
 
 // ============================================
-// RESERVATION ENDPOINTS (Ya incluyen /api)
+// RESERVATION ENDPOINTS
 // ============================================
 export const RESERVATION_ENDPOINTS = {
-  GET_ALL: '/api/reservations',
-  GET_MY_RESERVATIONS: '/api/reservations/my',
-  GET_UPCOMING: '/api/reservations/upcoming',
-  GET_AVAILABILITY: '/api/reservations/availability',
-  GET_GROUP_CLASSES: '/api/reservations/group-classes',
-  JOIN_GROUP_CLASS: (id: string) => `/api/reservations/group-classes/${id}/join`,
-  JOIN_GROUP_CLASS_WITH_PAYMENT: (id: string) => `/api/reservations/group-classes/${id}/join-with-payment`,
-  CANCEL: (id: string) => `/api/reservations/${id}/cancel`,
-} as const;
-
-// ============================================
-// PAYMENT ENDPOINTS
-// ============================================
-export const PAYMENT_ENDPOINTS = {
-  CREATE_CHECKOUT_SESSION: '/api/v1/payments/create-checkout-session',
-  CREATE_INTENT: '/api/v1/payments/create-intent',
-  GET_STATUS: (id: string) => `/api/v1/payments/${id}/status`,
-  CONFIRM: (id: string) => `/api/v1/payments/${id}/confirm`,
-  ACTIVATE_MEMBERSHIP: (id: string) => `/api/v1/payments/${id}/activate-membership`,
-  GET_PAYMENT_METHODS: (userId: number) => `/api/v1/payments/users/${userId}/payment-methods`,
-  ADD_PAYMENT_METHOD: (userId: number) => `/api/v1/payments/users/${userId}/payment-methods`,
-  DELETE_PAYMENT_METHOD: (userId: number, methodId: string) => `/api/v1/payments/users/${userId}/payment-methods/${methodId}`,
-  CALCULATE_PRICING: '/pricing/calculate',
-} as const;
-
-// ============================================
-// LOYALTY ENDPOINTS (Ya incluyen /api)
-// ============================================
-export const LOYALTY_ENDPOINTS = {
-  GET_DASHBOARD: '/api/loyalty/dashboard',
-  GET_PROFILE: '/api/loyalty/profile',
-  GET_REWARDS: '/api/loyalty/rewards',
-  GET_AFFORDABLE_REWARDS: '/api/loyalty/rewards/affordable',
-  GET_REWARD: (id: string) => `/api/loyalty/rewards/${id}`,
-  REDEEM: '/api/loyalty/redeem',
-  GET_REDEMPTIONS: '/api/loyalty/redemptions',
-  VALIDATE_REDEMPTION: (code: string) => `/api/loyalty/redemptions/validate/${code}`,
-  USE_REDEMPTION: (code: string) => `/api/loyalty/redemptions/${code}/use`,
-  GET_ACTIVITIES: '/api/loyalty/activities',
-  NOTIFY_REWARDS: '/api/loyalty/notify-rewards',
-  GET_TIER_BENEFITS: (tier: string) => `/api/loyalty/tiers/${tier}/benefits`,
-} as const;
-
-// ============================================
-// NOTIFICATION ENDPOINTS
-// ============================================
-export const NOTIFICATION_ENDPOINTS = {
-  GET_ALL: '/api/v1/notifications',
-  GET_BY_ID: (id: string) => `/api/v1/notifications/${id}`,
-  GET_BY_USER: (userId: number) => `/api/v1/notifications/${userId}`,
-  GET_USER_NOTIFICATIONS: (userId: number) => `/api/v1/users/${userId}/notifications`,
-  MARK_AS_READ: (id: string) => `/api/v1/notifications/${id}/read`,
-  CREATE: '/api/v1/notifications',
-} as const;
-
-// ============================================
-// RECEIPT ENDPOINTS
-// ============================================
-export const RECEIPT_ENDPOINTS = {
-  GET_ALL: '/api/v1/receipts',
-  GET_BY_USER: (userId: number) => `/api/v1/receipts/user/${userId}`,
-  GET_BY_NUMBER: (receiptNumber: string) => `/api/v1/receipts/${receiptNumber}`,
-  CREATE: '/api/v1/receipts',
+  GET_ALL: '/reservations',
+  GET_MY_RESERVATIONS: '/reservations/my',
+  GET_UPCOMING: '/reservations/upcoming',
+  GET_AVAILABILITY: '/reservations/availability',
+  GET_GROUP_CLASSES: '/reservations/group-classes',
+  JOIN_GROUP_CLASS: (id: string) => `/reservations/group-classes/${id}/join`,
+  JOIN_GROUP_CLASS_WITH_PAYMENT: (id: string) => `/reservations/group-classes/${id}/join-with-payment`,
+  CANCEL: (id: string) => `/reservations/${id}/cancel`,
 } as const;
 
 // ============================================
 // INSTRUCTOR ENDPOINTS
 // ============================================
 export const INSTRUCTOR_ENDPOINTS = {
-  GET_ALL: '/api/instructors',
-  GET_BY_ID: (id: string) => `/api/instructors/${id}`,
+  GET_ALL: '/instructors',
+  GET_BY_ID: (id: string) => `/instructors/${id}`,
+} as const;
+
+// ============================================
+// PAYMENT ENDPOINTS (v1)
+// ============================================
+export const PAYMENT_ENDPOINTS = {
+  CREATE_CHECKOUT_SESSION: '/v1/payments/create-checkout-session',
+  CREATE_INTENT: '/v1/payments/create-intent',
+  GET_STATUS: (id: string) => `/v1/payments/${id}/status`,
+  CONFIRM: (id: string) => `/v1/payments/${id}/confirm`,
+  ACTIVATE_MEMBERSHIP: (id: string) => `/v1/payments/${id}/activate-membership`,
+  GET_PAYMENT_METHODS: (userId: number) => `/v1/payments/users/${userId}/payment-methods`,
+  ADD_PAYMENT_METHOD: (userId: number) => `/v1/payments/users/${userId}/payment-methods`,
+  DELETE_PAYMENT_METHOD: (userId: number, methodId: string) => `/v1/payments/users/${userId}/payment-methods/${methodId}`,
+  CALCULATE_PRICING: '/pricing/calculate',
+} as const;
+
+// ============================================
+// LOYALTY ENDPOINTS
+// ============================================
+export const LOYALTY_ENDPOINTS = {
+  GET_DASHBOARD: '/loyalty/dashboard',
+  GET_PROFILE: '/loyalty/profile',
+  GET_REWARDS: '/loyalty/rewards',
+  GET_AFFORDABLE_REWARDS: '/loyalty/rewards/affordable',
+  GET_REWARD: (id: string) => `/loyalty/rewards/${id}`,
+  REDEEM: '/loyalty/redeem',
+  GET_REDEMPTIONS: '/loyalty/redemptions',
+  VALIDATE_REDEMPTION: (code: string) => `/loyalty/redemptions/validate/${code}`,
+  USE_REDEMPTION: (code: string) => `/loyalty/redemptions/${code}/use`,
+  GET_ACTIVITIES: '/loyalty/activities',
+  NOTIFY_REWARDS: '/loyalty/notify-rewards',
+  GET_TIER_BENEFITS: (tier: string) => `/loyalty/tiers/${tier}/benefits`,
+} as const;
+
+// ============================================
+// NOTIFICATION ENDPOINTS (v1)
+// ============================================
+export const NOTIFICATION_ENDPOINTS = {
+  GET_ALL: '/v1/notifications',
+  GET_BY_ID: (id: string) => `/v1/notifications/${id}`,
+  GET_BY_USER: (userId: number) => `/v1/notifications/${userId}`,
+  GET_USER_NOTIFICATIONS: (userId: number) => `/v1/users/${userId}/notifications`,
+  MARK_AS_READ: (id: string) => `/v1/notifications/${id}/read`,
+  CREATE: '/v1/notifications',
+} as const;
+
+// ============================================
+// RECEIPT ENDPOINTS (v1)
+// ============================================
+export const RECEIPT_ENDPOINTS = {
+  GET_ALL: '/v1/receipts',
+  GET_BY_USER: (userId: number) => `/v1/receipts/user/${userId}`,
+  GET_BY_NUMBER: (receiptNumber: string) => `/v1/receipts/${receiptNumber}`,
+  CREATE: '/v1/receipts',
 } as const;
 
 // ============================================
@@ -165,31 +164,34 @@ export const REPORT_ENDPOINTS = {
   MEMBERSHIPS_EXPIRING: '/reports/memberships/expiring',
   MEMBERSHIPS_BY_STATUS: (status: string) => `/reports/memberships/status/${status}`,
   MEMBERSHIPS_BY_TYPE: (type: string) => `/reports/memberships/type/${type}`,
-  ADMIN_KPI: '/api/v1/admin/reports/kpis',
+  ADMIN_KPI: '/v1/admin/reports/kpis',
 } as const;
 
 // ============================================
-// UTIL: Construir URL completa
+// RENEWAL PREFERENCE ENDPOINTS (v1)
 // ============================================
-export function buildUrl(endpoint: string): string {
-  // Si el endpoint YA tiene /api, NO agregar baseURL
-  if (endpoint.startsWith('/api')) {
-    return `${API_CONFIG.BASE_URL}${endpoint}`;
-  }
-  
-  // Si el endpoint NO tiene /api, agregarlo
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
-}
+export const RENEWAL_ENDPOINTS = {
+  GET_AUTO_RENEWAL: (userId: number) => `/v1/users/${userId}/membership/auto-renewal-preferences`,
+  UPDATE_AUTO_RENEWAL: (userId: number) => `/v1/users/${userId}/membership/auto-renewal-preferences`,
+  CHECK_EXPIRATION: (userId: number) => `/v1/users/${userId}/membership/check-expiration`,
+} as const;
+
+// ============================================
+// FRANCHISE ENDPOINTS
+// ============================================
+export const FRANCHISE_ENDPOINTS = {
+  GET_TIMESLOTS: '/franchises/timeslots',
+} as const;
 
 /**
- * EJEMPLO DE USO:
+ * Función auxiliar para construir URLs completas
+ * @param endpoint - Endpoint sin /api (es agregado por API_CONFIG.BASE_URL)
+ * @returns URL completa: https://repositoriodesplieguefitzone.onrender.com/api + endpoint
  * 
- * import { AUTH_ENDPOINTS, MEMBERSHIP_ENDPOINTS, buildUrl } from '@/lib/endpoints';
- * 
- * // En un servicio:
- * const url = buildUrl(AUTH_ENDPOINTS.LOGIN);
- * // Resultado: https://repositoriodesplieguefitzone.onrender.com/api/auth/login
- * 
- * const url2 = buildUrl(MEMBERSHIP_ENDPOINTS.GET_TYPES);
- * // Resultado: https://repositoriodesplieguefitzone.onrender.com/api/memberships/types
+ * EJEMPLO:
+ * buildUrl(AUTH_ENDPOINTS.LOGIN) 
+ * => https://repositoriodesplieguefitzone.onrender.com/api/auth/login
  */
+export function buildUrl(endpoint: string): string {
+  return `${API_CONFIG.BASE_URL}${endpoint}`;
+}

@@ -344,7 +344,7 @@ class MembershipManagementService {
         needsRenewal: boolean;
         daysRemaining: number;
         membershipType?: string;
-      }>>(`/api/v1/users/${userId}/membership/check-expiration?days=${daysBeforeExpiration}`);
+      }>>(`/v1/users/${userId}/membership/check-expiration?days=${daysBeforeExpiration}`);
 
       return response.data || { needsRenewal: false, daysRemaining: 0 };
     } catch (error) {
@@ -362,7 +362,7 @@ class MembershipManagementService {
   ): Promise<number> {
     try {
       const response = await this.request<ApiResponse<{ count: number }>>(
-        `/api/v1/users/${userId}/notifications/generate-expiration`,
+        `/v1/users/${userId}/notifications/generate-expiration`,
         {
           method: 'POST',
           body: JSON.stringify({ daysBeforeExpiration }),
@@ -389,7 +389,7 @@ class MembershipManagementService {
         autoRenewalEnabled: boolean;
         notificationDays: number;
         paymentMethod?: string;
-      }>>(`/api/v1/users/${userId}/auto-renewal-preferences`);
+      }>>(`/v1/users/${userId}/auto-renewal-preferences`);
 
       return response.data || {
         autoRenewalEnabled: false,
@@ -416,7 +416,7 @@ class MembershipManagementService {
     }
   ): Promise<boolean> {
     try {
-      await this.request(`/api/v1/users/${userId}/auto-renewal-preferences`, {
+      await this.request(`/v1/users/${userId}/auto-renewal-preferences`, {
         method: 'PUT',
         body: JSON.stringify(preferences),
       });
@@ -457,7 +457,7 @@ class MembershipManagementService {
 
       // Procesar renovación automática
       const response = await this.request<ApiResponse<MembershipInfo>>(
-        `/api/v1/users/${userId}/membership/auto-renew`,
+        `/v1/users/${userId}/membership/auto-renew`,
         {
           method: 'POST',
           body: JSON.stringify({
@@ -500,7 +500,7 @@ class MembershipManagementService {
         amount: number;
         automatic: boolean;
         status: string;
-      }>>>(`/api/v1/users/${userId}/renewal-history`);
+      }>>>(`/v1/users/${userId}/renewal-history`);
 
       return response.data || [];
     } catch (error) {
@@ -517,7 +517,7 @@ class MembershipManagementService {
     reminderDate: string
   ): Promise<boolean> {
     try {
-      await this.request(`/api/v1/users/${userId}/schedule-renewal-reminder`, {
+      await this.request(`/v1/users/${userId}/schedule-renewal-reminder`, {
         method: 'POST',
         body: JSON.stringify({ reminderDate }),
       });

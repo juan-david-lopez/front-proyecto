@@ -141,7 +141,7 @@ class PaymentService {
    */
   async createPaymentIntent(request: PaymentIntentRequest): Promise<PaymentIntentResponse> {
     try {
-      const response = await this.request<PaymentIntentResponse>('/api/v1/payments/create-intent', {
+      const response = await this.request<PaymentIntentResponse>('/v1/payments/create-intent', {
         method: 'POST',
         body: JSON.stringify({
           amount: request.amount,
@@ -169,7 +169,7 @@ class PaymentService {
    */
   async processPayment(request: ProcessPaymentRequest): Promise<ProcessPaymentResponse> {
     try {
-      const response = await this.request<ProcessPaymentResponse>('/api/v1/payments/process', {
+      const response = await this.request<ProcessPaymentResponse>('/v1/payments/process', {
         method: 'POST',
         body: JSON.stringify(request),
       });
@@ -191,7 +191,7 @@ class PaymentService {
   async createCheckoutSession(request: StripeCheckoutSessionRequest): Promise<StripeCheckoutSessionResponse> {
     try {
       const response = await this.request<StripeCheckoutSessionResponse>(
-        '/api/v1/payments/create-checkout-session',
+        '/v1/payments/create-checkout-session',
         {
           method: 'POST',
           body: JSON.stringify(request),
@@ -215,7 +215,7 @@ class PaymentService {
   async getPaymentStatus(paymentId: string): Promise<{ success: boolean; status?: string; error?: string }> {
     try {
       const response = await this.request<{ success: boolean; status: string }>(
-        `/api/v1/payments/${paymentId}/status`,
+        `/v1/payments/${paymentId}/status`,
         {
           method: 'GET',
         }
@@ -238,7 +238,7 @@ class PaymentService {
   async confirmPayment(paymentIntentId: string): Promise<{ success: boolean; receiptId?: string; error?: string }> {
     try {
       const response = await this.request<{ success: boolean; receiptId?: string }>(
-        `/api/v1/payments/${paymentIntentId}/confirm`,
+        `/v1/payments/${paymentIntentId}/confirm`,
         {
           method: 'POST',
         }
@@ -284,7 +284,7 @@ class PaymentService {
         membershipTypeType: typeof membershipType 
       });
       
-      const endpoint = `/api/v1/payments/${paymentIntentId}/activate-membership?userId=${userId}&membershipType=${membershipType}`;
+      const endpoint = `/v1/payments/${paymentIntentId}/activate-membership?userId=${userId}&membershipType=${membershipType}`;
       console.log('🌐 URL completa:', `${this.baseURL}${endpoint}`);
       
       const response = await this.request<any>(endpoint, {
@@ -340,7 +340,7 @@ class PaymentService {
     error?: string;
   }> {
     try {
-      const response = await this.request<any>(`/api/v1/users/${userId}/payment-methods`, {
+      const response = await this.request<any>(`/v1/users/${userId}/payment-methods`, {
         method: 'GET',
       });
 
@@ -364,7 +364,7 @@ class PaymentService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await this.request<{ success: boolean }>(
-        `/api/v1/users/${userId}/payment-methods`,
+        `/v1/users/${userId}/payment-methods`,
         {
           method: 'POST',
           body: JSON.stringify({ paymentMethodId }),
@@ -391,7 +391,7 @@ class PaymentService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await this.request<{ success: boolean }>(
-        `/api/v1/users/${userId}/payment-methods/${paymentMethodId}`,
+        `/v1/users/${userId}/payment-methods/${paymentMethodId}`,
         {
           method: 'DELETE',
         }

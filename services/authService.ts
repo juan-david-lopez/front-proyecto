@@ -234,10 +234,58 @@ class AuthService {
 
   clearAuth(): void {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("pendingLogin");
-      localStorage.removeItem("user");
+      console.log("[AuthService] 🧹 INICIANDO LIMPIEZA DE AUTENTICACIÓN...");
+      
+      // 1️⃣ Remover tokens específicos del servicio
+      const keysToRemove = [
+        "accessToken",
+        "refreshToken",
+        "pendingLogin",
+        "user",
+        "fitzone_token",
+        "auth_token",
+        "jwt_token",
+        "token",
+        "fitzone_user",
+        "user_id",
+        "user_email",
+        "authentication_time"
+      ];
+
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          localStorage.removeItem(key);
+          console.log(`  ✅ Removido: ${key}`);
+        }
+      });
+
+      // 2️⃣ Limpiar también sessionStorage si existe
+      if (sessionStorage) {
+        try {
+          const sessionKeys = Object.keys(sessionStorage);
+          sessionKeys.forEach(key => {
+            sessionStorage.removeItem(key);
+            console.log(`  ✅ SessionStorage removido: ${key}`);
+          });
+        } catch (error) {
+          console.warn("[AuthService] ⚠️ No se pudo limpiar sessionStorage:", error);
+        }
+      }
+
+      // 3️⃣ Verificar que todo esté limpio
+      console.log("[AuthService] 🔍 VERIFICANDO LIMPIEZA:");
+      console.log(`  📦 localStorage.length: ${localStorage.length}`);
+      console.log(`  🔑 accessToken presente: ${!!localStorage.getItem("accessToken")}`);
+      console.log(`  🔑 refreshToken presente: ${!!localStorage.getItem("refreshToken")}`);
+      console.log(`  🔑 fitzone_token presente: ${!!localStorage.getItem("fitzone_token")}`);
+      
+      if (localStorage.length === 0) {
+        console.log("[AuthService] ✅✅✅ LIMPIEZA COMPLETA - localStorage VACÍO");
+      } else {
+        console.warn(`[AuthService] ⚠️ localStorage aún contiene ${localStorage.length} items`);
+      }
+
+      console.log("[AuthService] ✅ clearAuth() FINALIZADO");
     }
   }
 

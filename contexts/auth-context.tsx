@@ -310,59 +310,138 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    console.log("[AuthContext] 🔓 Iniciando cierre de sesión seguro...")
+    console.log("[AuthContext] 🔓 INICIANDO CIERRE DE SESIÓN COMPLETO...")
     
     try {
-      // 1️⃣ PASO 1: Limpiar tokens y datos de autenticación
-      console.log("[AuthContext] Paso 1: Limpiando tokens...")
-      authService.clearAuth()
-      
-      // 2️⃣ PASO 2: Limpiar completamente localStorage y sessionStorage
-      console.log("[AuthContext] Paso 2: Limpiando localStorage y sessionStorage...")
-      forceCompleteLogout()
-      
-      // 3️⃣ PASO 3: Limpiar específicamente formularios de login
-      console.log("[AuthContext] Paso 3: Limpiando datos de formulario...")
-      clearLoginFormData()
-      
-      // 4️⃣ PASO 4: Limpiar estado de React
-      console.log("[AuthContext] Paso 4: Limpiando estado...")
-      setUser(null)
-      
-      // 5️⃣ PASO 5: Limpiar caché de HTTP
-      if ('caches' in window) {
-        caches.keys().then(cacheNames => {
-          cacheNames.forEach(cacheName => {
-            caches.delete(cacheName)
-          })
-        }).catch(e => console.warn('No se pudo limpiar caché:', e))
+      // ❌ PASO 1: Limpiar COMPLETAMENTE localStorage (SUPER IMPORTANTE)
+      console.log("[AuthContext] ❌ Paso 1: Borrando localStorage completo...")
+      if (typeof window !== 'undefined') {
+        // Obtener todas las claves ANTES de limpiar para loguear
+        const keys = Object.keys(localStorage);
+        console.log("[AuthContext] Claves en localStorage a eliminar:", keys);
+        
+        // Eliminar cada clave explícitamente
+        const keysToRemove = [
+          'accessToken',
+          'refreshToken',
+          'fitzone_token',
+          'fitzone_user',
+          'fitzone_user_info',
+          'user_id',
+          'user_role',
+          'auth_token',
+          'jwt_token',
+          'token',
+          'pending_login_email',
+          'login_email',
+          'login_form_data',
+          'registration_form_data',
+        ];
+        
+        keysToRemove.forEach(key => {
+          if (localStorage.getItem(key)) {
+            console.log(`[AuthContext] ❌ Eliminando localStorage[${key}]`);
+            localStorage.removeItem(key);
+          }
+        });
+        
+        // Limpiar TODO lo que pueda quedar
+        localStorage.clear();
+        console.log("[AuthContext] ✅ localStorage completamente limpio");
       }
       
-      console.log("[AuthContext] ✅ Sesión cerrada correctamente")
+      // ❌ PASO 2: Limpiar sessionStorage
+      console.log("[AuthContext] ❌ Paso 2: Borrando sessionStorage completo...");
+      if (typeof window !== 'undefined') {
+        const sessionKeys = Object.keys(sessionStorage);
+        console.log("[AuthContext] Claves en sessionStorage a eliminar:", sessionKeys);
+        sessionStorage.clear();
+        console.log("[AuthContext] ✅ sessionStorage completamente limpio");
+      }
       
-      // 6️⃣ PASO 6: Redirigir a login de forma segura
-      router.push("/login")
+      // ❌ PASO 3: Limpiar tokens del authService
+      console.log("[AuthContext] ❌ Paso 3: Limpiando authService...");
+      authService.clearAuth();
       
-      // 7️⃣ PASO 7: Recargar página después de pequeño delay para limpiar memoria
-      setTimeout(() => {
-        // Reemplazar el estado del historial para que el botón atrás no vuelva a la página autenticada
-        window.history.replaceState(null, '', '/login')
+      // ❌ PASO 4: Limpiar datos de formulario
+      console.log("[AuthContext] ❌ Paso 4: Limpiando datos de formulario...");
+      forceCompleteLogout();
+      clearLoginFormData();
+      
+      // ❌ PASO 5: Limpiar estado de React
+      console.log("[AuthContext] ❌ Paso 5: Limpiando estado de React...");
+      setUser(null);
+      
+      // ❌ PASO 6: Limpiar caché de Service Workers
+      console.log("[AuthContext] ❌ Paso 6: Limpiando caché de Service Workers...");
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        try {
+          caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+              caches.delete(cacheName).catch(e => console.warn('Error limpiando caché:', cacheName, e));
+            });
+          }).catch(e => console.warn('Error listando cachés:', e));
+        } catch (e) {
+          console.warn('Caché no disponible:', e);
+        }
+      }
+      
+      // ❌ PASO 7: Verificar que localStorage está realmente vacío
+      console.log("[AuthContext] 🔍 Verificación final de localStorage:");
+      console.log("[AuthContext] localStorage.length =", localStorage.length);
+      console.log("[AuthContext] localStorage keys:", Object.keys(localStorage));
+      
+      // ❌ PASO 8: Redirigir a login INMEDIATAMENTE
+      console.log("[AuthContext] ⏭️ Paso 8: Redirigiendo a login...");
+      
+      // Usar router.push() de Next.js
+      router.push("/login");
+      
+      // También forzar cambio de URL
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', '/login');
         
-        // Recargar sin caché usando no-cache headers
-        window.location.href = '/login?logout=true'
-      }, 500)
+        // Recargar completamente después de un tiempo
+        setTimeout(() => {
+          console.log("[AuthContext] 🔄 Recargando página...");
+          // Forzar recarga sin caché
+          window.location.replace('/login?logout=true&t=' + Date.now());
+        }, 300);
+      }
+      
+      console.log("[AuthContext] ✅✅✅ LOGOUT COMPLETADO EXITOSAMENTE ✅✅✅");
       
     } catch (error) {
-      console.error("[AuthContext] ❌ Error durante logout:", error)
+      console.error("[AuthContext] ❌❌❌ ERROR DURANTE LOGOUT:", error);
       
-      // En caso de error, forzar limpieza drástica
+      // PLAN DE CONTINGENCIA: Forzar limpieza drástica
+      console.log("[AuthContext] 🚨 Activando plan de contingencia...");
       try {
-        localStorage.clear()
-        sessionStorage.clear()
-        setUser(null)
-        window.location.href = '/login'
+        // Forzar limpieza de TODO
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          // Borrar todas las cookies de sesión
+          document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+              .replace(/^ +/, "")
+              .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+          });
+          
+          // Limpiar estado
+          setUser(null);
+          
+          // Redirigir forzadamente
+          console.log("[AuthContext] 🚨 Forzando logout final...");
+          window.location.href = '/login?error=session_closed';
+        }
       } catch (e) {
-        console.error("[AuthContext] Error crítico:", e)
+        console.error("[AuthContext] 🚨🚨 ERROR CRÍTICO:", e);
+        // Último recurso
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       }
     }
   }

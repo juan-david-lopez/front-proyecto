@@ -71,7 +71,7 @@ class ReceiptService {
    */
   async generateReceipt(request: CreateReceiptRequest): Promise<ReceiptOperationResponse> {
     try {
-      const response = await this.request<ApiResponse<Receipt>>('/api/v1/receipts', {
+      const response = await this.request<ApiResponse<Receipt>>('/v1/receipts', {
         method: 'POST',
         body: JSON.stringify(request),
       });
@@ -107,7 +107,7 @@ class ReceiptService {
       }
 
       const queryString = queryParams.toString();
-      const endpoint = `/api/v1/users/${userId}/receipts${queryString ? `?${queryString}` : ''}`;
+      const endpoint = `/v1/users/${userId}/receipts${queryString ? `?${queryString}` : ''}`;
 
       const response = await this.request<ApiResponse<Receipt[]>>(endpoint);
       return response.data || [];
@@ -122,7 +122,7 @@ class ReceiptService {
    */
   async getReceiptById(receiptId: string): Promise<Receipt | null> {
     try {
-      const response = await this.request<ApiResponse<Receipt>>(`/api/v1/receipts/${receiptId}`);
+      const response = await this.request<ApiResponse<Receipt>>(`/v1/receipts/${receiptId}`);
       return response.data || null;
     } catch (error) {
       console.error('Error al obtener recibo:', error);
@@ -136,7 +136,7 @@ class ReceiptService {
   async getTransactionSummaries(userId: number): Promise<TransactionSummary[]> {
     try {
       const response = await this.request<ApiResponse<TransactionSummary[]>>(
-        `/api/v1/users/${userId}/transactions`
+        `/v1/users/${userId}/transactions`
       );
       return response.data || [];
     } catch (error) {
@@ -151,7 +151,7 @@ class ReceiptService {
   async getPaymentStats(userId: number): Promise<PaymentStats> {
     try {
       const response = await this.request<ApiResponse<PaymentStats>>(
-        `/api/v1/users/${userId}/payment-stats`
+        `/v1/users/${userId}/payment-stats`
       );
       
       return response.data || {
@@ -184,7 +184,7 @@ class ReceiptService {
    */
   async markAsEmailSent(receiptId: string): Promise<boolean> {
     try {
-      await this.request(`/api/v1/receipts/${receiptId}/mark-sent`, {
+      await this.request(`/v1/receipts/${receiptId}/mark-sent`, {
         method: 'PATCH',
       });
       return true;
@@ -235,7 +235,7 @@ class ReceiptService {
    */
   async sendReceiptByEmail(receiptId: string, email: string): Promise<boolean> {
     try {
-      await this.request(`/api/v1/receipts/${receiptId}/send-email`, {
+      await this.request(`/v1/receipts/${receiptId}/send-email`, {
         method: 'POST',
         body: JSON.stringify({ email }),
       });
@@ -252,7 +252,7 @@ class ReceiptService {
   async searchReceipts(query: string): Promise<Receipt[]> {
     try {
       const response = await this.request<ApiResponse<Receipt[]>>(
-        `/api/v1/receipts/search?q=${encodeURIComponent(query)}`
+        `/v1/receipts/search?q=${encodeURIComponent(query)}`
       );
       return response.data || [];
     } catch (error) {

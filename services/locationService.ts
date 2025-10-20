@@ -82,7 +82,7 @@ class LocationService {
   async getAllLocations(): Promise<Location[]> {
     try {
       console.log('📍 [LocationService] Obteniendo todas las sedes...');
-      const response = await this.request<ApiResponse<Location[]>>('/api/v1/locations');
+      const response = await this.request<ApiResponse<Location[]>>('/locations');
       
       if (response.data && Array.isArray(response.data)) {
         console.log(`✅ [LocationService] ${response.data.length} sedes encontradas`);
@@ -106,7 +106,7 @@ class LocationService {
   async getLocationById(locationId: number): Promise<Location | null> {
     try {
       console.log(`📍 [LocationService] Obteniendo sede ID: ${locationId}...`);
-      const response = await this.request<ApiResponse<Location>>(`/api/v1/locations/${locationId}`);
+      const response = await this.request<ApiResponse<Location>>(`/locations/${locationId}`);
       
       if (response.data) {
         console.log(`✅ [LocationService] Sede encontrada:`, response.data.name);
