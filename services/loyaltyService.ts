@@ -10,9 +10,9 @@ import type {
   ApiResponse,
   TierName
 } from '@/types/loyalty';
+import { API_CONFIG } from '@/lib/api-config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-const BASE_URL = `${API_URL}/loyalty`;
+const BASE_URL = `${API_CONFIG.BASE_URL}/loyalty`;
 
 // Helper para obtener el token de autenticación
 const getAuthHeaders = () => {
