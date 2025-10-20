@@ -56,7 +56,7 @@ class ReservationService {
       // Manejo especial para 403 (Forbidden) - problema de autorización
       if (response.status === 403) {
         console.warn(`⚠️ [ReservationService] 403 Forbidden for ${endpoint}. Using fallback data.`);
-        console.warn('ℹ️ Esto puede ser normal si el backend de reservas no está completamente implementado.');
+        console.warn('ℹEsto puede ser normal si el backend de reservas no está completamente implementado.');
         return this.getMockData(endpoint) as T;
       }
       
@@ -190,26 +190,50 @@ class ReservationService {
    * Join a group class (simplified reservation creation)
    */
   async joinGroupClass(classId: number): Promise<Reservation> {
-    // For now, just call createReservation with minimal data
-    // The backend should handle the defaults
-    const request = {
-      type: ReservationType.GROUP_CLASS,
-      groupClassId: classId,
-      scheduledDate: new Date().toISOString().split('T')[0],
-      scheduledStartTime: '00:00',
-      scheduledEndTime: '01:00',
-      locationId: 1, // Default location ID
-    } as CreateReservationRequest;
-    return this.createReservation(request);
+    try {
+      console.log(`✅ [ReservationService] Joining group class ${classId} (ELITE - Free)`);
+      
+      // Llamar al endpoint del backend: POST /api/reservations/group-classes/{id}/join
+      const response = await this.request<ApiResponse<Reservation>>(
+        `/reservations/group-classes/${classId}/join`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        }
+      );
+      
+      console.log(`✅ [ReservationService] Successfully joined group class:`, response.data);
+      return response.data!;
+    } catch (error: any) {
+      console.error('❌ Error joining group class:', error);
+      throw error;
+    }
   }
 
   /**
    * Join a group class with payment
    */
   async joinGroupClassWithPayment(classId: number, paymentMethodId: string): Promise<Reservation> {
-    // This would typically process a payment and then create the reservation
-    // For now, just create the reservation
-    return this.joinGroupClass(classId);
+    try {
+      console.log(`💳 [ReservationService] Joining group class ${classId} with payment`);
+      
+      // Llamar al endpoint del backend: POST /api/reservations/group-classes/{id}/join-with-payment
+      const response = await this.request<ApiResponse<Reservation>>(
+        `/reservations/group-classes/${classId}/join-with-payment`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            paymentMethodId: paymentMethodId
+          }),
+        }
+      );
+      
+      console.log(`✅ [ReservationService] Successfully joined group class with payment:`, response.data);
+      return response.data!;
+    } catch (error: any) {
+      console.error('❌ Error joining group class with payment:', error);
+      throw error;
+    }
   }
 
   /**
@@ -398,28 +422,15 @@ class ReservationService {
    */
   async getAvailableGroupClasses(): Promise<Reservation[]> {
     try {
-      // Get today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      console.log('📋 [ReservationService] Fetching available group classes');
       
-      // Call getGroupClassesSchedule for today
-      const slots = await this.getGroupClassesSchedule(today.toISOString().split('T')[0]);
-
-      // Convert AvailableSlots to pseudo-Reservations for display
-      return slots.map((slot, idx) => ({
-        id: parseInt(slot.id) || idx,
-        userId: 0,
-        type: ReservationType.GROUP_CLASS,
-        status: ReservationStatus.ACTIVE,
-        reservationDate: new Date().toISOString(),
-        scheduledDate: slot.date,
-        scheduledStartTime: slot.startTime,
-        scheduledEndTime: slot.endTime,
-        groupClass: slot.groupClass,
-        instructor: slot.instructor,
-      } as any));
+      // Llamar al endpoint del backend: GET /api/reservations/group-classes
+      const response = await this.request<ApiResponse<Reservation[]>>('/reservations/group-classes');
+      
+      console.log('✅ [ReservationService] Available group classes:', response.data);
+      return response.data || [];
     } catch (error) {
-      console.error('Error getting available group classes:', error);
+      console.error('❌ Error getting available group classes:', error);
       return [];
     }
   }

@@ -27,6 +27,7 @@ import { reservationService } from '@/services/reservationService';
 import { useToast } from '@/hooks/use-toast';
 import { AvailabilityCard } from '@/components/reservation/availability-card';
 import { MyReservationCard } from '@/components/reservation/my-reservation-card';
+import { PaymentModal } from '@/components/reservation/payment-modal';
 import { useReservationNotifications } from '@/hooks/use-reservation-notifications';
 
 interface ReservationPageState {
@@ -160,12 +161,79 @@ export default function ReservationsPage() {
     }
   };
 
+  // State para modal de pago
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedSlotForPayment, setSelectedSlotForPayment] = useState<AvailableSlot | null>(null);
+  const [userMembershipType, setUserMembershipType] = useState<string>('');
+
   const handleReservation = async (slot: AvailableSlot) => {
     if (!user) {
       showError("Error", "Debes iniciar sesión para hacer reservas");
       return;
     }
 
+    // Si es clase grupal, verificar membresía para saber si requiere pago
+    if (slot.type === ReservationType.GROUP_CLASS) {
+      try {
+        // Obtener tipo de membresía del usuario
+        const membershipType = (user.membershipType || 'BASIC').toUpperCase();
+        setUserMembershipType(membershipType);
+
+        if (membershipType === 'ELITE') {
+          // ✅ Usuario ELITE: Se une GRATIS
+          console.log('✅ Usuario ELITE - Inscripción gratuita a clase grupal');
+          await createGroupClassReservation(slot, null);
+        } else if (membershipType === 'PREMIUM' || membershipType === 'BASIC') {
+          // 💳 Usuario PREMIUM/BASIC: Requiere PAGO
+          console.log('💳 Usuario', membershipType, '- Requiere pago de $15,000 COP');
+          setSelectedSlotForPayment(slot);
+          setShowPaymentModal(true);
+        }
+      } catch (error) {
+        console.error('Error al procesar reserva de clase grupal:', error);
+        showError("Error", "No se pudo procesar tu solicitud. Inténtalo de nuevo.");
+      }
+    } else {
+      // Para entrenamientos personales y espacios especializados, proceder sin pago
+      await createGeneralReservation(slot);
+    }
+  };
+
+  const createGroupClassReservation = async (slot: AvailableSlot, paymentMethodId: string | null) => {
+    try {
+      if (paymentMethodId) {
+        // Con pago (PREMIUM/BASIC)
+        const result = await reservationService.joinGroupClassWithPayment(
+          slot.groupClass!.id,
+          paymentMethodId
+        );
+        showSuccess(
+          "¡Pago exitoso!", 
+          `Pago de $15,000 COP procesado. ¡Ya estás inscrito en ${slot.groupClass?.name}!`
+        );
+        notifyReservationCreated(result);
+      } else {
+        // Sin pago (ELITE)
+        const result = await reservationService.joinGroupClass(slot.groupClass!.id);
+        showSuccess(
+          "¡Inscripción exitosa!", 
+          `¡Acceso gratuito! Ya estás inscrito en ${slot.groupClass?.name}`
+        );
+        notifyReservationCreated(result);
+      }
+
+      // Recargar datos
+      if (activeTab === 'group-classes') {
+        loadGroupClasses();
+      }
+      loadMyReservations();
+    } catch (error: any) {
+      console.error('Error en reserva de clase grupal:', error);
+      showError("Error", error.message || "No se pudo completar la inscripción");
+    }
+  };
+
+  const createGeneralReservation = async (slot: AvailableSlot) => {
     try {
       const reservationData: CreateReservationRequest = {
         type: slot.type,
@@ -181,7 +249,6 @@ export default function ReservationsPage() {
 
       const newReservation = await reservationService.createReservation(reservationData);
       
-      // Show success message and notification
       showSuccess("¡Reserva exitosa!", `Tu ${reservationService.getActivityTypeDisplayName(slot.type).toLowerCase()} ha sido reservada`);
       notifyReservationCreated(newReservation);
 
@@ -197,6 +264,15 @@ export default function ReservationsPage() {
     } catch (error) {
       console.error('Error making reservation:', error);
       showError("Error", "No se pudo realizar la reserva. Inténtalo de nuevo.");
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (selectedSlotForPayment) {
+      // El pago fue exitoso en el componente PaymentModal
+      setShowPaymentModal(false);
+      setSelectedSlotForPayment(null);
+      // Los datos se recargarán cuando se cierre el modal
     }
   };
 
@@ -568,6 +644,21 @@ export default function ReservationsPage() {
         </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal de Pago para Clases Grupales */}
+      {selectedSlotForPayment && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setSelectedSlotForPayment(null);
+          }}
+          onSuccess={handlePaymentSuccess}
+          groupClass={selectedSlotForPayment as any}
+          groupClassId={selectedSlotForPayment.groupClass?.id || 0}
+          price={15000}
+        />
+      )}
     </div>
   );
 }
