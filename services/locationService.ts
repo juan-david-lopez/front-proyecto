@@ -21,9 +21,9 @@ class LocationService {
       return process.env.NEXT_PUBLIC_API_URL;
     }
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      return 'http://localhost:8080';
+      return 'http://localhost:8080/api';
     }
-    return 'https://desplieguefitzone.onrender.com';
+    return 'https://desplieguefitzone.onrender.com/api';
   }
 
   private getAccessToken(): string | null {

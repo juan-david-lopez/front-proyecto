@@ -11,8 +11,8 @@ import type {
   TierName
 } from '@/types/loyalty';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const BASE_URL = `${API_URL}/api/loyalty`;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const BASE_URL = `${API_URL}/loyalty`;
 
 // Helper para obtener el token de autenticación
 const getAuthHeaders = () => {
