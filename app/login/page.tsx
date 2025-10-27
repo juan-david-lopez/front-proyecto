@@ -382,33 +382,26 @@ export default function LoginPage() {
                   </Button>
                 </form>
 
-                <div className="text-center mt-6">
-                  <Link
-                    href="/register"
-                    className="text-theme-secondary hover:text-theme-primary text-sm transition-colors"
-                  >
-                    ¿No tienes cuenta? <span className="text-red-400 hover:text-red-300 font-medium">Regístrate aquí</span>
-                  </Link>
-                </div>
-
+                {/* Olvidaste tu contraseña */}
                 <div className="text-center mt-4">
                   <Link
                     href="/forgot-password"
-                    className="text-red-500 hover:text-red-400 text-sm transition-colors"
-                >
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
+                    className="text-red-500 hover:text-red-400 text-sm transition-colors inline-flex items-center gap-1 hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
 
-              <div className="text-center mt-4">
-                <span className="text-theme-secondary">¿No tienes una cuenta? </span>
-                <Link
-                  href="/register"
-                  className="text-red-500 hover:text-red-400 font-medium"
-                >
-                  Regístrate aquí
-                </Link>
-              </div>
+                {/* Registro */}
+                <div className="text-center mt-6 pt-6 border-t border-gray-700">
+                  <span className="text-theme-secondary text-sm">¿No tienes una cuenta? </span>
+                  <Link
+                    href="/register"
+                    className="text-red-500 hover:text-red-400 font-medium text-sm transition-colors"
+                  >
+                    Regístrate aquí
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>
