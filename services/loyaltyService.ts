@@ -16,7 +16,7 @@ const BASE_URL = `${API_URL}/api/loyalty`;
 
 // Helper para obtener el token de autenticación
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
   return {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'
@@ -26,9 +26,20 @@ const getAuthHeaders = () => {
 // Helper para manejar respuestas fetch
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Error en la solicitud' }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    const errorText = await response.text();
+    let errorMessage = `Error HTTP ${response.status}`;
+    
+    try {
+      const error = JSON.parse(errorText);
+      errorMessage = error.message || error.error || errorMessage;
+    } catch {
+      errorMessage = errorText || errorMessage;
+    }
+    
+    console.error('API Error:', { status: response.status, message: errorMessage });
+    throw new Error(errorMessage);
   }
+  
   const result: ApiResponse<T> = await response.json();
   return result.data;
 }
@@ -165,6 +176,26 @@ class LoyaltyService {
       return await handleResponse<LoyaltyActivity[]>(response);
     } catch (error) {
       console.error('Error fetching activities:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Registrar una nueva actividad de puntos
+   */
+  async logActivity(activityType: string, description?: string): Promise<LoyaltyActivity> {
+    try {
+      const response = await fetch(`${BASE_URL}/activities`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          activityType,
+          description: description || `Actividad: ${activityType}`
+        })
+      });
+      return await handleResponse<LoyaltyActivity>(response);
+    } catch (error) {
+      console.error('Error logging activity:', error);
       throw error;
     }
   }

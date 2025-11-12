@@ -3,6 +3,7 @@
 
 import { useAuth } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
+import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,7 @@ import {
 export default function AdminDashboard() {
   const { user, hasPermission, logout } = useAuth()
   const { goBack } = useNavigation()
+  const router = useRouter()
   const [selectedTab, setSelectedTab] = useState("kpis")
   const [loading, setLoading] = useState(false)
   
@@ -95,6 +97,14 @@ export default function AdminDashboard() {
     accessToSpecializedSpaces: false,
     personalTrainingSessions: 0
   })
+
+  // Protección: Redirigir usuarios no administradores al dashboard de miembro
+  useEffect(() => {
+    if (user && user.role !== 'ADMIN') {
+      console.log('⚠️ [AdminDashboard] Usuario no autorizado, redirigiendo a /dashboard')
+      router.push('/dashboard')
+    }
+  }, [user?.role, router])
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
@@ -236,6 +246,18 @@ export default function AdminDashboard() {
 
   if (!user || user.role !== 'ADMIN') {
     return <div>Acceso no autorizado</div>
+  }
+
+  // Mostrar pantalla de carga mientras se verifica el rol
+  if (!user || user.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando permisos...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

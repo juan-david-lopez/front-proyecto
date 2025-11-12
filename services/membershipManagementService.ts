@@ -84,21 +84,77 @@ class MembershipManagementService {
   // ---------------------------
   // Obtener información detallada de membresía
   // Maneja tanto usuarios CON membresía como usuarios SIN membresía
+  // WORKAROUND: El endpoint /memberships/details/{userId} NO está implementado en el backend
+  // Usamos /memberships/user/{userId} como fallback
   // ---------------------------
   async getMembershipDetails(userId: number): Promise<MembershipDetailsResponse> {
     console.log(`📡 [MembershipManagement] Getting membership details for user ${userId}`);
     
     try {
-      const response = await this.request<MembershipDetailsResponse>(`/memberships/details/${userId}`);
-      console.log(`✅ [MembershipManagement] Membership details:`, response);
-      return response;
+      // INTENTO 1: Intentar con el endpoint ideal (que no existe aún)
+      try {
+        const response = await this.request<MembershipDetailsResponse>(`/memberships/details/${userId}`);
+        console.log(`✅ [MembershipManagement] Membership details (ideal endpoint):`, response);
+        return response;
+      } catch (detailsError) {
+        console.warn('⚠️ Endpoint /memberships/details/{userId} no disponible, usando fallback...');
+      }
+
+      // INTENTO 2: Usar endpoint básico de membresías /memberships/user/{userId}
+      try {
+        const basicResponse = await this.request<any>(`/memberships/user/${userId}`);
+        console.log(`✅ [MembershipManagement] Basic membership data:`, basicResponse);
+        
+        // Si el backend devuelve null o empty, el usuario no tiene membresía
+        if (!basicResponse || (Array.isArray(basicResponse) && basicResponse.length === 0)) {
+          return {
+            hasMembership: false,
+            userId: userId,
+            message: 'No tienes una membresía activa',
+            needsLocation: false
+          };
+        }
+
+        // El backend puede devolver un objeto o un array
+        const membership = Array.isArray(basicResponse) ? basicResponse[0] : basicResponse;
+
+        // Convertir respuesta básica a MembershipDetailsResponse
+        return {
+          hasMembership: true,
+          userId: userId,
+          membershipId: membership.id || membership.membershipId,
+          status: membership.status || 'ACTIVE',
+          membershipTypeName: membership.membershipType?.name || membership.type || 'BASICO',
+          startDate: membership.startDate,
+          endDate: membership.endDate,
+          daysRemaining: this.calculateDaysRemaining(membership.endDate),
+          canSuspend: membership.status === 'ACTIVE',
+          canCancel: true,
+          suspensionsUsed: 0,
+          maxSuspensions: 2,
+          autoRenewalEnabled: membership.autoRenewalEnabled || false,
+          message: 'Membresía activa',
+          needsLocation: false
+        };
+      } catch (basicError) {
+        console.warn('⚠️ Endpoint /memberships/user/{userId} falló:', basicError);
+      }
+
+      // INTENTO 3: Si todo falla, retornar sin membresía
+      return {
+        hasMembership: false,
+        userId: userId,
+        message: 'No se pudo obtener información de membresía',
+        needsLocation: false
+      };
+      
     } catch (error) {
       console.error('❌ Error getting membership details:', error);
       // En caso de error, retornar respuesta por defecto sin membresía
       return {
         hasMembership: false,
         userId: userId,
-        message: 'No se pudo obtener información de membresía',
+        message: 'Error al cargar la membresía. Por favor, intenta de nuevo.',
         needsLocation: false
       };
     }

@@ -48,7 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Verificar si hay tokens guardados
       const token = authService.getAccessToken()
       if (!token) {
+        console.log("[AuthContext] No hay token guardado, usuario no autenticado")
         setIsLoading(false)
+        setUser(null)
         return
       }
 
@@ -58,18 +60,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const savedUserData = authService.getUserInfo()
       if (savedUserData) {
         console.log("[AuthContext] Usuario encontrado en localStorage:", savedUserData)
-        setUser(savedUserData)
+        
+        // Verificar que los datos del usuario sean válidos (que tenga al menos id y email)
+        if (savedUserData.id && savedUserData.email) {
+          setUser(savedUserData)
+        } else {
+          console.warn("[AuthContext] Datos de usuario inválidos, limpiando sesión")
+          authService.clearAuth()
+          forceCompleteLogout()
+          setUser(null)
+        }
       } else {
-        console.log("[AuthContext] No se encontró información del usuario")
+        console.log("[AuthContext] No se encontró información del usuario, limpiando tokens")
         // Si no hay datos del usuario, limpiar tokens
         authService.clearAuth()
+        forceCompleteLogout()
+        setUser(null)
       }
     } catch (error) {
       console.error("[AuthContext] Error verificando autenticación:", error)
       // Limpiar datos en caso de error
       authService.clearAuth()
-      localStorage.removeItem("fitzone_token")
-      localStorage.removeItem("fitzone_user")
+      forceCompleteLogout()
+      setUser(null)
     } finally {
       setIsLoading(false)
     }

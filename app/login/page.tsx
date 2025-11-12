@@ -27,11 +27,15 @@ export default function LoginPage() {
   // Usar el hook de manera segura
   let login = async (email: string, password: string): Promise<{ success: boolean; error?: string; requiresOtp?: boolean; message?: string }> => ({ success: false, error: "Auth not available" })
   let getRedirectPath = () => "/dashboard"
+  let authUser: any = null
+  let authIsLoading = true
   
   try {
     const auth = useAuth()
     login = auth.login
     getRedirectPath = auth.getRedirectPath
+    authUser = auth.user
+    authIsLoading = auth.isLoading
   } catch (error) {
     // Manejar el caso donde el AuthProvider no está disponible aún
     console.warn("Login page: AuthProvider no disponible aún")
@@ -46,6 +50,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [fieldTouched, setFieldTouched] = useState<{ [key: string]: boolean }>({})
   const [loginAttempts, setLoginAttempts] = useState(0)
+
+  // Verificar si ya hay una sesión activa y redirigir
+  useEffect(() => {
+    if (!authIsLoading && authUser) {
+      console.log("[LoginPage] Usuario ya autenticado, redirigiendo...")
+      const redirectPath = getRedirectPath()
+      router.push(redirectPath)
+    }
+  }, [authUser, authIsLoading, router, getRedirectPath])
 
   // Limpiar datos de formularios anteriores al cargar la página
   useEffect(() => {

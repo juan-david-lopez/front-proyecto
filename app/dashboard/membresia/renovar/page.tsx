@@ -15,7 +15,7 @@ import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
 import { membershipManagementService } from "@/services/membershipManagementService"
 import { membershipService } from "@/services/membershipService"
-import { MembershipInfo, MembershipTypeName } from "@/types/membership"
+import { MembershipDetailsResponse, MembershipTypeName, MembershipType } from "@/types/membership"
 import { userService } from "@/services/userService"
 import { useToast } from "@/hooks/use-toast"
 
@@ -24,7 +24,8 @@ export default function RenewMembershipPage() {
   const { success: showSuccess, error: showError } = useToast()
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-  const [membership, setMembership] = useState<MembershipInfo | null>(null)
+  const [membership, setMembership] = useState<MembershipDetailsResponse | null>(null)
+  const [membershipType, setMembershipType] = useState<MembershipType | null>(null)
   const [userId, setUserId] = useState<number | null>(null)
   const [autoRenewal, setAutoRenewal] = useState(false)
 
@@ -48,7 +49,20 @@ export default function RenewMembershipPage() {
 
       const membershipData = await membershipManagementService.getMembershipDetails(userIdNumber)
       setMembership(membershipData)
-      setAutoRenewal(membershipData.autoRenewal || false)
+      
+      // Cargar el tipo de membresía si tiene una
+      if (membershipData.hasMembership && membershipData.membershipTypeName) {
+        try {
+          const typeData = await membershipService.getMembershipTypeByName(
+            membershipData.membershipTypeName as MembershipTypeName
+          )
+          setMembershipType(typeData)
+        } catch (typeError) {
+          console.error('Error loading membership type:', typeError)
+        }
+      }
+      
+      setAutoRenewal(false) // Por defecto desactivado, ya que MembershipDetailsResponse no tiene esta info
     } catch (error) {
       console.error('Error loading membership:', error)
       showError("Error", "No se pudo cargar la información de tu membresía")
@@ -111,7 +125,7 @@ export default function RenewMembershipPage() {
   }
 
   const handleRenewal = async () => {
-    if (!userId || !membership?.id || !membership?.type?.idMembershipType) {
+    if (!userId || !membership?.membershipId || !membershipType?.idMembershipType) {
       showError("Error", "Información de membresía incompleta")
       return
     }
@@ -121,9 +135,9 @@ export default function RenewMembershipPage() {
     try {
       // Simular creación de payment intent (en producción esto se haría con Stripe/pasarela real)
       const paymentIntent = await membershipService.createPaymentIntent(
-        membership.type.monthlyPrice,
+        membershipType.monthlyPrice,
         'cop',
-        `Renovación membresía ${getMembershipTypeDisplay(membership.type.name)}`
+        `Renovación membresía ${getMembershipTypeDisplay(membershipType.name)}`
       )
 
       if (!paymentIntent) {
@@ -133,7 +147,7 @@ export default function RenewMembershipPage() {
       // Procesar renovación
       const result = await membershipManagementService.renewMembership({
         userId,
-        membershipId: membership.id,
+        membershipId: membership.membershipId,
         paymentIntentId: paymentIntent,
         autoRenewal,
       })
@@ -172,7 +186,7 @@ export default function RenewMembershipPage() {
     )
   }
 
-  if (!membership || !membership.type) {
+  if (!membership || !membershipType) {
     return (
       <AuthGuard requireAuth={true}>
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white flex items-center justify-center">
@@ -220,15 +234,15 @@ export default function RenewMembershipPage() {
         <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl">
           <div className="space-y-6">
             {/* Plan actual */}
-            <Card className={`bg-gradient-to-br ${getPlanColor(membership.type.name)} border-0 shadow-2xl`}>
+            <Card className={`bg-gradient-to-br ${getPlanColor(membershipType.name)} border-0 shadow-2xl`}>
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
-                    {getPlanIcon(membership.type.name)}
+                    {getPlanIcon(membershipType.name)}
                   </div>
                   <div>
                     <CardTitle className="text-2xl text-white">
-                      Plan {getMembershipTypeDisplay(membership.type.name)}
+                      Plan {getMembershipTypeDisplay(membershipType.name)}
                     </CardTitle>
                     <p className="text-white/80 text-sm mt-1">Tu membresía actual</p>
                   </div>
@@ -260,8 +274,8 @@ export default function RenewMembershipPage() {
                 {/* Resumen de costos */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center py-3 border-b border-gray-700">
-                    <span className="text-gray-300">Plan {getMembershipTypeDisplay(membership.type.name)}</span>
-                    <span className="font-semibold">{formatPrice(membership.type.monthlyPrice)}</span>
+                    <span className="text-gray-300">Plan {getMembershipTypeDisplay(membershipType.name)}</span>
+                    <span className="font-semibold">{formatPrice(membershipType.monthlyPrice)}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-gray-700">
                     <span className="text-gray-300">Período</span>
@@ -270,7 +284,7 @@ export default function RenewMembershipPage() {
                   <div className="flex justify-between items-center py-4 bg-green-500/10 rounded-lg px-4">
                     <span className="text-lg font-bold text-green-300">Total a pagar</span>
                     <span className="text-2xl font-bold text-green-400">
-                      {formatPrice(membership.type.monthlyPrice)}
+                      {formatPrice(membershipType.monthlyPrice)}
                     </span>
                   </div>
                 </div>
@@ -286,7 +300,7 @@ export default function RenewMembershipPage() {
                     <div className="flex items-center gap-2 text-sm text-gray-300">
                       <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                       <span>
-                        {membership.type.accessToAllLocation 
+                        {membershipType.accessToAllLocation 
                           ? 'Acceso a todas las sucursales' 
                           : 'Acceso a tu sucursal principal'}
                       </span>
@@ -294,17 +308,17 @@ export default function RenewMembershipPage() {
                     <div className="flex items-center gap-2 text-sm text-gray-300">
                       <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
                       <span>
-                        {membership.type.groupClassesSessionsIncluded === -1 
+                        {membershipType.groupClassesSessionsIncluded === -1 
                           ? 'Clases grupales ilimitadas'
-                          : membership.type.groupClassesSessionsIncluded > 0
-                            ? `${membership.type.groupClassesSessionsIncluded} clases grupales`
+                          : membershipType.groupClassesSessionsIncluded > 0
+                            ? `${membershipType.groupClassesSessionsIncluded} clases grupales`
                             : 'Sin clases grupales'}
                       </span>
                     </div>
-                    {membership.type.personalTrainingIncluded > 0 && (
+                    {membershipType.personalTrainingIncluded > 0 && (
                       <div className="flex items-center gap-2 text-sm text-gray-300">
                         <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-                        <span>{membership.type.personalTrainingIncluded} sesiones de entrenamiento personal</span>
+                        <span>{membershipType.personalTrainingIncluded} sesiones de entrenamiento personal</span>
                       </div>
                     )}
                   </div>

@@ -307,7 +307,7 @@ export default function ReservationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all-locations">Todas las ubicaciones</SelectItem>
-                    {state.locations.map(location => (
+                    {state.locations?.filter(location => location?.id).map(location => (
                       <SelectItem key={location.id} value={location.id.toString()}>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4" />

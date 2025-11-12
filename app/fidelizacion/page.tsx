@@ -9,6 +9,7 @@ import type { LoyaltyDashboard } from "@/types/loyalty"
 import { LoyaltyBadge } from "@/components/loyalty/loyalty-badge"
 import { PointsDisplay } from "@/components/loyalty/points-display"
 import { TierProgressBar } from "@/components/loyalty/tier-progress-bar"
+import { EarnPointsActions } from "@/components/loyalty/earn-points-actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,6 +23,7 @@ export default function FidelizacionPage() {
   const router = useRouter()
   const [dashboard, setDashboard] = useState<LoyaltyDashboard | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   useEffect(() => {
@@ -35,11 +37,14 @@ export default function FidelizacionPage() {
   const loadDashboard = async () => {
     try {
       setLoading(true)
+      setError(null)
       const data = await loyaltyService.getDashboard()
       setDashboard(data)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading dashboard:", error)
-      toast.error("Error al cargar el dashboard de fidelización")
+      const errorMessage = error?.message || "Error al cargar el dashboard de fidelización"
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -70,16 +75,49 @@ export default function FidelizacionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-4" />
+          <p className="text-theme-secondary">Cargando programa de fidelización...</p>
+        </div>
       </div>
     )
   }
 
-  if (!dashboard) {
+  if (error || !dashboard) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Error al cargar datos</p>
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center p-6">
+        <Card className="card-theme border-theme max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+              <Gift className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-theme-primary mb-2">
+              Error al cargar datos
+            </h2>
+            <p className="text-theme-secondary mb-6">
+              {error || "No se pudieron cargar los datos del programa de fidelización."}
+            </p>
+            <div className="space-y-3">
+              <Button 
+                onClick={loadDashboard}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                Reintentar
+              </Button>
+              <Button 
+                onClick={() => router.push("/dashboard")}
+                variant="outline"
+                className="w-full border-theme text-theme-secondary hover:text-theme-primary"
+              >
+                Volver al Dashboard
+              </Button>
+            </div>
+            <p className="text-xs text-theme-secondary mt-4">
+              💡 Nota: El programa de fidelización requiere que el backend esté configurado correctamente.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -89,6 +127,16 @@ export default function FidelizacionPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-600 to-orange-600 rounded-lg p-8 text-white mb-6 shadow-xl">
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              onClick={() => router.push("/dashboard")}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+            >
+              ← Volver
+            </Button>
+          </div>
           <h1 className="text-4xl font-bold mb-2">Mi Fidelización</h1>
           <p className="text-lg opacity-90">{dashboard.motivationalMessage}</p>
         </div>
@@ -178,6 +226,9 @@ export default function FidelizacionPage() {
 
           {/* Actividades Recientes y Canjes */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Componente para ganar puntos */}
+            <EarnPointsActions onPointsEarned={loadDashboard} />
+
             {/* Actividades Recientes */}
             <Card className="card-theme">
               <CardHeader>

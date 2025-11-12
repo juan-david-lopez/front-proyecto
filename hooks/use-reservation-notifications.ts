@@ -135,7 +135,8 @@ export function useReservationNotifications() {
       }
     };
 
-    checkUpcoming(); // Initial check
+    // Defer initial check to avoid setState during render
+    setTimeout(() => checkUpcoming(), 0);
     const interval = setInterval(checkUpcoming, 5 * 60 * 1000); // Check every 5 minutes
 
     return () => clearInterval(interval);

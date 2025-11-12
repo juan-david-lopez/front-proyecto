@@ -82,7 +82,13 @@ export interface MembershipDetailsResponse {
   locationId?: number;              // ID de la ubicación principal
   startDate?: string;               // Fecha de inicio (ISO)
   endDate?: string;                 // Fecha de vencimiento (ISO)
+  daysRemaining?: number;           // Días restantes hasta vencimiento
   status?: string;                  // Estado: ACTIVE, EXPIRED, SUSPENDED
+  canSuspend?: boolean;             // true = puede suspender la membresía
+  canCancel?: boolean;              // true = puede cancelar la membresía
+  suspensionsUsed?: number;         // Número de suspensiones usadas
+  maxSuspensions?: number;          // Máximo de suspensiones permitidas
+  autoRenewalEnabled?: boolean;     // true = auto-renovación activada
   message: string;                  // Mensaje descriptivo del estado
   needsLocation: boolean;           // true = debe asignar ubicación antes de comprar
 }

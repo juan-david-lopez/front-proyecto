@@ -79,42 +79,45 @@ export function PlanModal({ isOpen, onClose, plan }: PlanModalProps) {
   }
 
   const getDisplayName = (name: string) => {
-    switch (name) {
-      case 'BASIC':
-        return 'Básico'
-      case 'PREMIUM':
-        return 'Premium'
-      case 'ELITE':
-        return 'ELITE'
-      default:
-        return name
+    const normalizedName = name.toString().toLowerCase()
+    
+    if (normalizedName === 'basic' || normalizedName === 'basico') {
+      return 'Básico'
+    } else if (normalizedName === 'premium') {
+      return 'Premium'
+    } else if (normalizedName === 'elite' || normalizedName === 'vip') {
+      return 'ELITE'
     }
+    
+    return name
   }
 
   const getPlanIcon = (name: string) => {
-    switch (name) {
-      case 'BASIC':
-        return <Users className="w-8 h-8" />
-      case 'PREMIUM':
-        return <Star className="w-8 h-8" />
-      case 'ELITE':
-        return <Crown className="w-8 h-8" />
-      default:
-        return <Zap className="w-8 h-8" />
+    const normalizedName = name.toString().toLowerCase()
+    
+    if (normalizedName === 'basic' || normalizedName === 'basico') {
+      return <Users className="w-8 h-8" />
+    } else if (normalizedName === 'premium') {
+      return <Star className="w-8 h-8" />
+    } else if (normalizedName === 'elite' || normalizedName === 'vip') {
+      return <Crown className="w-8 h-8" />
     }
+    
+    return <Zap className="w-8 h-8" />
   }
 
   const getPlanColor = (name: string) => {
-    switch (name) {
-      case 'BASIC':
-        return 'from-blue-500 to-blue-700'
-      case 'PREMIUM':
-        return 'from-purple-500 to-purple-700'
-      case 'ELITE':
-        return 'from-yellow-400 to-yellow-600'
-      default:
-        return 'from-red-500 to-red-700'
+    const normalizedName = name.toString().toLowerCase()
+    
+    if (normalizedName === 'basic' || normalizedName === 'basico') {
+      return 'from-blue-500 to-blue-700'
+    } else if (normalizedName === 'premium') {
+      return 'from-purple-500 to-purple-700'
+    } else if (normalizedName === 'elite' || normalizedName === 'vip') {
+      return 'from-yellow-400 to-yellow-600'
     }
+    
+    return 'from-red-500 to-red-700'
   }
 
   const handleContinue = () => {

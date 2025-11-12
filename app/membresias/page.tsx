@@ -91,17 +91,18 @@ export default function MembresíasPage() {
     return `$${price.toLocaleString("es-CO")}`
   }
 
-  const getPlanDisplayName = (membershipTypeName: MembershipTypeName) => {
-    switch (membershipTypeName) {
-      case MembershipTypeName.BASIC:
-        return "Plan Básico"
-      case MembershipTypeName.PREMIUM:
-        return "Plan Premium"
-      case MembershipTypeName.ELITE:
-        return "Plan Elite"
-      default:
-        return membershipTypeName
+  const getPlanDisplayName = (membershipTypeName: MembershipTypeName | string) => {
+    const name = membershipTypeName.toString().toLowerCase()
+    
+    if (name === 'basic' || name === 'basico') {
+      return "Plan Básico"
+    } else if (name === 'premium') {
+      return "Plan Premium"
+    } else if (name === 'elite' || name === 'vip') {
+      return "Plan Elite"
     }
+    
+    return membershipTypeName.toString()
   }
 
   if (loading) {
@@ -131,24 +132,6 @@ export default function MembresíasPage() {
       <header className="px-6 py-6 bg-theme-primary/50 backdrop-blur-sm border-b border-theme">
         <div className="flex items-center justify-between">
           <BackButton href="/" label="Volver al inicio" />
-          
-          {/* Botón de recarga (solo visible en desarrollo o cuando hay datos locales) */}
-          {(process.env.NODE_ENV === 'development' || dataSource === 'local') && (
-            <Button
-              onClick={loadMembershipTypes}
-              variant="outline"
-              size="sm"
-              className="border-theme text-theme-secondary hover:text-theme-primary hover:border-red-500"
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Zap className="w-4 h-4 mr-2" />
-              )}
-              {dataSource === 'local' ? 'Conectar al servidor' : 'Recargar datos'}
-            </Button>
-          )}
         </div>
       </header>
 
@@ -210,9 +193,9 @@ export default function MembresíasPage() {
                 </div>
               )}
               
-              <CardContent className="p-8 text-center flex flex-col flex-1">
+              <CardContent className="p-8 flex flex-col flex-1">
                 <div className="mb-6">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg ${
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg ${
                     index === 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-400 dark:to-blue-500' :
                     index === 1 ? 'bg-gradient-to-br from-red-500 to-red-600 dark:from-red-400 dark:to-red-500' :
                     'bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-400 dark:to-yellow-500'
@@ -237,7 +220,7 @@ export default function MembresíasPage() {
                 </div>
                 
                 <ul className="space-y-4 mb-8 flex-1" role="list">
-                  {membershipType.name === MembershipTypeName.BASIC && (
+                  {(membershipType.name === MembershipTypeName.BASIC || membershipType.name.toString().toLowerCase() === 'basico' || membershipType.name.toString().toUpperCase() === 'BASIC') && (
                     <>
                       <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -261,7 +244,7 @@ export default function MembresíasPage() {
                       </li>
                     </>
                   )}
-                  {membershipType.name === MembershipTypeName.PREMIUM && (
+                  {(membershipType.name === MembershipTypeName.PREMIUM || membershipType.name.toString().toLowerCase() === 'premium') && (
                     <>
                       <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -285,7 +268,7 @@ export default function MembresíasPage() {
                       </li>
                     </>
                   )}
-                  {membershipType.name === MembershipTypeName.ELITE && (
+                  {(membershipType.name === MembershipTypeName.ELITE || membershipType.name.toString().toLowerCase() === 'elite' || membershipType.name.toString().toLowerCase() === 'vip') && (
                     <>
                       <li className="flex items-center gap-3 text-theme-secondary">
                         <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />

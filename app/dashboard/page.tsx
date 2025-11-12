@@ -10,7 +10,7 @@ import {
   User, BarChart3, CreditCard, Settings, Calendar, 
   Clock, Flame, LogOut, CheckCircle, TrendingUp, 
   Target, Award, Bell, Activity, Loader2, RefreshCw,
-  Shield
+  Shield, CheckCircle2
 } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
@@ -18,9 +18,11 @@ import { membershipService } from "@/services/membershipService"
 import { MembershipStatusResponse, MembershipTypeName } from "@/types/membership"
 import { userService } from "@/services/userService"
 import { ReservationWidget } from "@/components/reservation/reservation-widget"
-import { NotificationBell } from "@/components/reservation/notification-bell"
-import { MembershipNotificationBell } from "@/components/membership-notification-bell"
+import { UnifiedNotificationBell } from "@/components/unified-notification-bell"
 import { useAuth } from "@/contexts/auth-context"
+import loyaltyService from "@/services/loyaltyService"
+import type { LoyaltyProfile, LoyaltyActivity } from "@/types/loyalty"
+import { LoyaltyBadge } from "@/components/loyalty/loyalty-badge"
 
 
 export default function DashboardPage() {
@@ -31,6 +33,9 @@ export default function DashboardPage() {
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [loyaltyProfile, setLoyaltyProfile] = useState<LoyaltyProfile | null>(null)
+  const [recentLoyaltyActivities, setRecentLoyaltyActivities] = useState<LoyaltyActivity[]>([])
+  const [loadingLoyalty, setLoadingLoyalty] = useState(true)
   const [currentDate] = useState(new Date().toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
@@ -38,8 +43,17 @@ export default function DashboardPage() {
     day: "numeric",
   }))
 
+  // Redirigir a administradores al dashboard de admin
+  useEffect(() => {
+    if (contextUser?.role === 'ADMIN') {
+      console.log('👨‍💼 [Dashboard] Admin detectado, redirigiendo a /admin')
+      router.push('/admin')
+    }
+  }, [contextUser?.role, router])
+
   useEffect(() => {
     loadUserData()
+    loadLoyaltyData()
   }, [contextUser?.membershipType]) // Re-cargar cuando cambie el tipo de membresía en el contexto
 
  const loadUserData = async () => {
@@ -135,6 +149,23 @@ export default function DashboardPage() {
   }
 } 
 
+  const loadLoyaltyData = async () => {
+    try {
+      setLoadingLoyalty(true)
+      const profile = await loyaltyService.getProfile()
+      setLoyaltyProfile(profile)
+      
+      // Cargar actividades recientes (últimas 5 para el dashboard)
+      const activities = await loyaltyService.getActivities()
+      setRecentLoyaltyActivities(activities.slice(0, 5))
+    } catch (error) {
+      console.error('Error loading loyalty data:', error)
+      // No mostrar error al usuario, solo no mostrar la sección si falla
+    } finally {
+      setLoadingLoyalty(false)
+    }
+  }
+
   const handleLogout = () => {
     userService.clearAuth()
     router.push('/')
@@ -220,6 +251,18 @@ export default function DashboardPage() {
   const membershipInfo = getMembershipInfo()
   const MembershipIcon = membershipInfo.icon
 
+  // Mostrar pantalla de carga mientras se verifica el rol de administrador
+  if (contextUser?.role === 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-2" />
+          <span className="text-theme-primary">Redirigiendo al panel de administrador...</span>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-theme-primary flex items-center justify-center">
@@ -249,8 +292,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <MembershipNotificationBell />
-            <NotificationBell />
+            <UnifiedNotificationBell />
             <Button
               onClick={handleLogout}
               variant="outline"
@@ -332,7 +374,7 @@ export default function DashboardPage() {
             <h2 id="actions-heading" className="text-2xl font-bold text-red-500 mb-6">
               Acciones Rápidas
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" role="grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6" role="grid">
               <Link href="/perfil" className="block">
                 <Card
                   className="card-theme border-theme hover:bg-theme-secondary/20 transition-all duration-200 cursor-pointer hover:shadow-md h-full"
@@ -410,8 +452,162 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
+
+              <Link href="/fidelizacion" className="block">
+                <Card
+                  className="card-theme border-purple-600 border-2 hover:bg-purple-600/10 transition-all duration-200 cursor-pointer hover:shadow-lg h-full relative overflow-hidden group"
+                  role="gridcell"
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-500/20 to-transparent rounded-bl-full transform group-hover:scale-150 transition-transform duration-300"></div>
+                  <CardContent className="p-6 text-center relative z-10">
+                    <div
+                      className="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-md group-hover:shadow-xl transition-shadow"
+                      role="img"
+                      aria-label="Icono de fidelización"
+                    >
+                      <Award className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-theme-primary mb-2 group-hover:text-purple-600 transition-colors">Fidelización</h3>
+                    <p className="text-theme-secondary text-sm">Puntos y recompensas</p>
+                    {!loadingLoyalty && loyaltyProfile && (
+                      <Badge className="mt-3 bg-purple-100 text-purple-700 border-purple-300">
+                        {loyaltyProfile.availablePoints} pts
+                      </Badge>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </section>
+
+          {/* Loyalty Widget */}
+          {!loadingLoyalty && loyaltyProfile && (
+            <section aria-labelledby="loyalty-heading">
+              <h2 id="loyalty-heading" className="text-2xl font-bold text-red-500 mb-6">
+                Mi Programa de Fidelización
+              </h2>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Nivel Actual */}
+                <Card className="card-theme border-theme shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Mi Nivel</span>
+                      <LoyaltyBadge tier={loyaltyProfile.currentTier} size="small" animated />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-theme-secondary">Puntos disponibles</span>
+                        <span className="text-2xl font-bold text-purple-600">{loyaltyProfile.availablePoints}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-theme-secondary">Puntos totales</span>
+                        <span className="text-sm font-medium">{loyaltyProfile.totalPoints}</span>
+                      </div>
+                      {loyaltyProfile.nextTier && (
+                        <div className="pt-2 border-t border-theme-secondary/20">
+                          <p className="text-xs text-theme-secondary mb-2">
+                            Próximo nivel: <span className="font-semibold">{loyaltyProfile.nextTier}</span>
+                          </p>
+                          <p className="text-xs text-theme-secondary">
+                            {loyaltyProfile.monthsToNextTier} {loyaltyProfile.monthsToNextTier === 1 ? 'mes' : 'meses'} restantes
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Beneficios Actuales */}
+                <Card className="card-theme border-theme shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Award className="w-5 h-5 text-purple-600" />
+                      <span>Mis Beneficios</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-theme-secondary">Descuento renovación</span>
+                        <Badge variant="secondary">{loyaltyProfile.tierBenefits.renewalDiscountPercentage}%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-theme-secondary">Clases adicionales</span>
+                        <Badge variant="secondary">{loyaltyProfile.tierBenefits.additionalClassesPerMonth}/mes</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-theme-secondary">Pases de invitado</span>
+                        <Badge variant="secondary">{loyaltyProfile.tierBenefits.freeGuestPassesPerMonth}/mes</Badge>
+                      </div>
+                      {loyaltyProfile.tierBenefits.priorityReservations && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-theme-secondary/20">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-600">Reservas prioritarias</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Actividad Reciente */}
+                <Card className="card-theme border-theme shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Activity className="w-5 h-5 text-purple-600" />
+                        <span>Actividad Reciente</span>
+                      </div>
+                      <Link href="/fidelizacion/historial">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Ver todo
+                        </Button>
+                      </Link>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {recentLoyaltyActivities.length > 0 ? (
+                      <div className="space-y-3">
+                        {recentLoyaltyActivities.map((activity) => (
+                          <div key={activity.idLoyaltyActivity} className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-theme-primary line-clamp-1">
+                                {activity.activityTypeDisplayName}
+                              </p>
+                              <p className="text-xs text-theme-secondary">
+                                {new Date(activity.activityDate).toLocaleDateString('es-ES', { 
+                                  day: 'numeric', 
+                                  month: 'short' 
+                                })}
+                              </p>
+                            </div>
+                            <Badge className="bg-purple-100 text-purple-700 ml-2">
+                              +{activity.pointsEarned}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-theme-secondary text-center py-4">
+                        No hay actividades recientes
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* CTA para ver más */}
+              <div className="mt-4 text-center">
+                <Link href="/fidelizacion">
+                  <Button className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white">
+                    <Award className="w-4 h-4 mr-2" />
+                    Ver Dashboard de Fidelización Completo
+                  </Button>
+                </Link>
+              </div>
+            </section>
+          )}
 
           {/* Today's Statistics */}
           <section aria-labelledby="stats-heading">
@@ -530,7 +726,7 @@ export default function DashboardPage() {
             <h2 id="progress-heading" className="text-2xl font-bold text-red-500 mb-6">
               Progreso Semanal
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
               <Card className="card-theme border-theme shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -572,6 +768,52 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Estadísticas de Fidelización */}
+              {!loadingLoyalty && loyaltyProfile && (
+                <>
+                  <Card className="card-theme border-theme shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <TrendingUp className="w-5 h-5 text-purple-600" />
+                        <span>Puntos del Mes</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-theme-secondary">Actividades registradas</span>
+                          <span className="font-semibold">{loyaltyProfile.totalActivitiesLogged}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-theme-secondary">Clases asistidas</span>
+                          <span className="font-semibold">{loyaltyProfile.classesAttended}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="card-theme border-theme shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <Flame className="w-5 h-5 text-orange-600" />
+                        <span>Racha</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-orange-600 mb-1">
+                          {loyaltyProfile.consecutiveLoginDays}
+                        </div>
+                        <p className="text-sm text-theme-secondary">días consecutivos</p>
+                        <p className="text-xs text-theme-secondary mt-2">
+                          Miembro desde hace {loyaltyProfile.monthsAsMember} {loyaltyProfile.monthsAsMember === 1 ? 'mes' : 'meses'}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
           </section>
         </div>

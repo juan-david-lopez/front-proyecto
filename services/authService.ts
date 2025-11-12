@@ -242,10 +242,23 @@ class AuthService {
 
   clearAuth(): void {
     if (typeof window !== "undefined") {
+      // Limpiar todos los datos relacionados con autenticación
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("pendingLogin");
       localStorage.removeItem("user");
+      localStorage.removeItem("fitzone_token");
+      localStorage.removeItem("fitzone_user");
+      localStorage.removeItem("fitzone_refresh_token");
+      
+      // Limpiar sessionStorage también
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("fitzone_token");
+      sessionStorage.removeItem("fitzone_user");
+      
+      console.log("[AuthService] Todos los datos de autenticación han sido limpiados");
     }
   }
 

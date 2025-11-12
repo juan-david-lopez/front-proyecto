@@ -13,7 +13,7 @@ import { ArrowLeft, XCircle, AlertTriangle, Loader2, Heart } from "lucide-react"
 import { AuthGuard } from "@/components/auth-guard"
 import { useState, useEffect } from "react"
 import { membershipManagementService } from "@/services/membershipManagementService"
-import { MembershipInfo } from "@/types/membership"
+import { MembershipDetailsResponse } from "@/types/membership"
 import { userService } from "@/services/userService"
 import { useToast } from "@/hooks/use-toast"
 
@@ -32,7 +32,7 @@ export default function CancelMembershipPage() {
   const { success: showSuccess, error: showError, warning: showWarning } = useToast()
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-  const [membership, setMembership] = useState<MembershipInfo | null>(null)
+  const [membership, setMembership] = useState<MembershipDetailsResponse | null>(null)
   const [userId, setUserId] = useState<number | null>(null)
   const [reason, setReason] = useState("")
   const [feedback, setFeedback] = useState("")
@@ -68,7 +68,7 @@ export default function CancelMembershipPage() {
   }
 
   const handleCancel = async () => {
-    if (!userId || !membership?.id) {
+    if (!userId || !membership?.membershipId) {
       showError("Error", "Información de membresía incompleta")
       return
     }
@@ -88,7 +88,7 @@ export default function CancelMembershipPage() {
     try {
       const result = await membershipManagementService.cancelMembership({
         userId,
-        membershipId: membership.id,
+        membershipId: membership.membershipId,
         reason,
         feedback: feedback.trim() || undefined,
         requestRefund,

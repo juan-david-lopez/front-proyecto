@@ -54,9 +54,9 @@ export default function PerfilPage() {
         setProfileData({
           name: userData.name || "",
           email: userData.email || "",
-          phone: userData.phone || "",
-          address: userData.address || "",
-          birthDate: userData.birthDate || "",
+          phone: userData.emergencyContactPhone || "",
+          address: "",  // UserResponse no tiene address
+          birthDate: "",  // UserResponse no tiene birthDate directamente
         })
       }
     } catch (err) {

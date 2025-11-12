@@ -27,7 +27,7 @@ export default function PrivacidadPage() {
             
             <div className="space-y-2 text-gray-400">
               <p className="text-xl">FitZone Gimnasio</p>
-              <p className="text-sm">Última actualización: Enero 2025</p>
+              <p className="text-sm">Última actualización: Noviembre 2025</p>
             </div>
           </div>
 
@@ -62,7 +62,7 @@ export default function PrivacidadPage() {
                     <div className="space-y-3 text-gray-300">
                       <p><strong className="text-white">Razón Social:</strong> FitZone S.A.S.</p>
                       <p><strong className="text-white">NIT:</strong> 900.XXX.XXX-X</p>
-                      <p><strong className="text-white">Dirección:</strong> Calle XX # XX-XX, Bogotá, Colombia</p>
+                      <p><strong className="text-white">Dirección:</strong> Calle XX # XX-XX, Armenia, Colombia</p>
                       <p><strong className="text-white">Teléfono:</strong> +57 (1) XXX-XXXX</p>
                       <p><strong className="text-white">Email:</strong> privacidad@fitzone.com.co</p>
                     </div>
@@ -80,7 +80,7 @@ export default function PrivacidadPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-4">3. Datos Personales Recolectados</h2>
                     <div className="space-y-4 text-gray-300">
-                      <p><strong className="text-white">3.1 Datos de Identificación:</strong> Nombre completo, número de identificación, fecha de nacimiento, fotografía.</p>
+                      <p><strong className="text-white">3.1 Datos de Identificación:</strong> Nombre completo, número de identificación, fecha de nacimiento.</p>
                       <p><strong className="text-white">3.2 Datos de Contacto:</strong> Dirección, teléfono, correo electrónico.</p>
                       <p><strong className="text-white">3.3 Datos de Salud:</strong> Información médica relevante para el ejercicio físico, alergias, condiciones médicas.</p>
                       <p><strong className="text-white">3.4 Datos Financieros:</strong> Información de pago y facturación.</p>

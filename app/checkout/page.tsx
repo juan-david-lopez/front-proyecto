@@ -82,21 +82,31 @@ export default function CheckoutPage() {
   }
 
   const getDisplayName = (name: string) => {
-    switch (name) {
-      case 'BASIC': return 'Básico'
-      case 'PREMIUM': return 'Premium'
-      case 'ELITE': return 'ELITE'
-      default: return name
+    const normalizedName = name.toString().toLowerCase()
+    
+    if (normalizedName === 'basic' || normalizedName === 'basico') {
+      return 'Básico'
+    } else if (normalizedName === 'premium') {
+      return 'Premium'
+    } else if (normalizedName === 'elite' || normalizedName === 'vip') {
+      return 'ELITE'
     }
+    
+    return name
   }
 
   const getPlanIcon = (name: string) => {
-    switch (name) {
-      case 'BASIC': return <Users className="w-6 h-6" />
-      case 'PREMIUM': return <Star className="w-6 h-6" />
-      case 'ELITE': return <Crown className="w-6 h-6" />
-      default: return <Shield className="w-6 h-6" />
+    const normalizedName = name.toString().toLowerCase()
+    
+    if (normalizedName === 'basic' || normalizedName === 'basico') {
+      return <Users className="w-6 h-6" />
+    } else if (normalizedName === 'premium') {
+      return <Star className="w-6 h-6" />
+    } else if (normalizedName === 'elite' || normalizedName === 'vip') {
+      return <Crown className="w-6 h-6" />
     }
+    
+    return <Shield className="w-6 h-6" />
   }
 
   const getPlanFeatures = (membershipType: MembershipType) => {

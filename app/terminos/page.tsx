@@ -27,7 +27,7 @@ export default function TerminosPage() {
             
             <div className="space-y-2 text-gray-400">
               <p className="text-xl">FitZone Gimnasio</p>
-              <p className="text-sm">Última actualización: Enero 2025</p>
+              <p className="text-sm">Última actualización: Noviembre 2025</p>
             </div>
           </div>
 

@@ -15,6 +15,7 @@ import { FitZoneLogo } from "@/components/fitzone-logo"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AuthGuard } from "@/components/auth-guard"
+import { useAuth } from "@/contexts/auth-context"
 import { userService } from "@/services/userService"
 import authService from "@/services/authService"
 import { DocumentType, UserRole } from "@/types/user"
@@ -46,6 +47,20 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [locations, setLocations] = useState<Location[]>([])
   const [loadingLocations, setLoadingLocations] = useState(true)
+
+  // Verificar si ya hay una sesión activa
+  let authUser: any = null
+  let authIsLoading = true
+  let getRedirectPath = () => "/dashboard"
+  
+  try {
+    const auth = useAuth()
+    authUser = auth.user
+    authIsLoading = auth.isLoading
+    getRedirectPath = auth.getRedirectPath
+  } catch (error) {
+    console.warn("Register page: AuthProvider no disponible aún")
+  }
 
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -80,6 +95,15 @@ export default function RegisterPage() {
     "entrenador": UserRole.INSTRUCTOR,
     "admin": UserRole.ADMIN
   }
+
+  // Verificar si ya hay una sesión activa y redirigir
+  useEffect(() => {
+    if (!authIsLoading && authUser) {
+      console.log("[RegisterPage] Usuario ya autenticado, redirigiendo...")
+      const redirectPath = getRedirectPath()
+      router.push(redirectPath)
+    }
+  }, [authUser, authIsLoading, router, getRedirectPath])
 
   // Cargar sedes al montar el componente
   useEffect(() => {
@@ -680,11 +704,11 @@ export default function RegisterPage() {
                   <div className="space-y-1">
                     <Label htmlFor="terms" className="text-sm text-theme-primary leading-relaxed">
                       Acepto los{" "}
-                      <Link href="/terms" className="text-red-500 hover:text-red-400">
+                      <Link href="/terminos" className="text-red-500 hover:text-red-400 underline">
                         términos y condiciones
                       </Link>{" "}
                       y la{" "}
-                      <Link href="/privacy" className="text-red-500 hover:text-red-400">
+                      <Link href="/privacidad" className="text-red-500 hover:text-red-400 underline">
                         política de privacidad
                       </Link>
                     </Label>

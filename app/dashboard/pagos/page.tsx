@@ -62,14 +62,33 @@ function PaymentHistoryContent() {
     try {
       setLoading(true);
       const userId = parseInt(user!.id, 10);
+      console.log('🔍 [Pagos] Cargando historial de pagos para usuario:', userId);
+      
       const [transactionsData, statsData] = await Promise.all([
         receiptService.getTransactionSummaries(userId),
         receiptService.getPaymentStats(userId)
       ]);
+      
+      console.log('✅ [Pagos] Transacciones recibidas:', transactionsData);
+      console.log('📊 [Pagos] Total de transacciones:', transactionsData.length);
+      console.log('📈 [Pagos] Estadísticas:', statsData);
+      
+      if (transactionsData.length === 0) {
+        console.warn('⚠️ [Pagos] No se encontraron transacciones. Posibles causas:');
+        console.warn('   1. El usuario no ha realizado ningún pago');
+        console.warn('   2. El backend no está devolviendo los pagos realizados');
+        console.warn('   3. El endpoint /api/v1/users/{userId}/transactions no existe');
+        console.warn('   4. Los pagos no se están guardando correctamente en la BD');
+        console.warn('📖 Solución: El backend debe guardar transacciones cuando:');
+        console.warn('   - Se activa una membresía (MEMBERSHIP_PURCHASE)');
+        console.warn('   - Se renueva una membresía (MEMBERSHIP_RENEWAL)');
+        console.warn('   - Se hace upgrade (MEMBERSHIP_UPGRADE)');
+      }
+      
       setTransactions(transactionsData);
       setStats(statsData);
     } catch (error) {
-      console.error('Error al cargar datos:', error);
+      console.error('❌ [Pagos] Error al cargar datos:', error);
     } finally {
       setLoading(false);
     }
@@ -379,12 +398,45 @@ function PaymentHistoryContent() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               No se encontraron transacciones
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-4">
               {searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL' || dateRange !== 'ALL'
                 ? 'Intenta ajustar los filtros'
                 : 'Aún no has realizado ninguna transacción'
               }
             </p>
+            
+            {/* Mensaje informativo cuando no hay transacciones */}
+            {transactions.length === 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 max-w-md mx-auto text-left">
+                <p className="text-sm text-blue-800 mb-2 font-semibold">
+                  ℹ️ ¿Por qué no veo mi historial de pagos?
+                </p>
+                <ul className="text-xs text-blue-700 space-y-1 list-disc list-inside">
+                  <li>Las transacciones se registran cuando compras, renuevas o haces upgrade de membresías</li>
+                  <li>Si ya compraste una membresía, el backend debe estar guardando las transacciones</li>
+                  <li>Verifica en la consola del navegador (F12) para más detalles</li>
+                </ul>
+                <Button 
+                  onClick={loadData}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Cargando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refrescar Historial
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       ) : (
