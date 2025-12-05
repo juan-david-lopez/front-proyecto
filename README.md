@@ -278,19 +278,11 @@ Miembro:
 
 ---
 
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
 ---
 
 ## 📄 Licencia
 
-Este proyecto es privado y pertenece a FitZone.
+Este proyecto es privado y pertenece a FitZone una empresa ficticia.
 
 ---
 
@@ -329,6 +321,6 @@ Este proyecto es privado y pertenece a FitZone.
 
 ---
 
-**Última actualización:** 9 de octubre de 2025  
-**Versión:** 3.0.0  
+**Última actualización:** 4 de diciembre de 2025  
+**Versión:** 4.0.0  
 **Estado:** En desarrollo activo 🚀
